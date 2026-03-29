@@ -1,4 +1,4 @@
-const CACHE = 'stroomlijnen-v2';
+const CACHE = 'opencpo-charge-v2';
 const PRECACHE = ['/', '/skin/style.css', '/static/home.js', '/static/favicon.svg', '/static/manifest.json'];
 
 self.addEventListener('install', e => {

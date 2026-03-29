@@ -8,7 +8,7 @@
 1. **Web app (PWA)** — browser-based, all platforms, no native app
 2. **One app, feature flags** — all features built in, toggled on/off from backend
 3. **Logic is agnostic** — the charge app engine has no opinion about branding or features
-4. **Skins are separate** — Stroomlijnen skin = current look and feel. Engine is open-sourceable.
+4. **Skins are separate** — Operator skins apply branding. Engine is open-sourceable.
 5. **Both B2B and public** — fleet drivers + general public use the same app
 6. **Optional login** — anonymous OTP charging works. Account login is an opt-in feature for history/favorites/personalized receipts
 7. **Roll out incrementally** — ship polished, enable features one by one
@@ -58,7 +58,7 @@ All features controlled by backend flags. Admin panel toggles them. App reads fl
 ## Architecture (per architecture-v2.md section 19)
 
 ```
-stroomlijnen-charge-app/        (open-sourceable base)
+opencpo-charge-app/             (open-sourceable base)
 ├── main.py                     Engine — routes, API proxy, flag reader
 ├── templates/                  Base templates (clean, functional)
 ├── static/                     Base JS + CSS
@@ -70,11 +70,11 @@ stroomlijnen-charge-app/        (open-sourceable base)
 │   ├── account/                Optional login system
 │   └── push/                   Push notifications
 └── skins/
-    └── stroomlijnen/           Our premium look (current CSS/animations)
+    └── stroomlijnen/           Example branded skin (CSS/animations)
 ```
 
 Open-source base: functional, clean UX, no branding
-Stroomlijnen skin: premium UX, our branding, custom CSS
+Stroomlijnen skin: example branded skin with custom CSS and animations
 Other operators: their own skin, same engine
 
 ## User Identity Model

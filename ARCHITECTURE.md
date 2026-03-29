@@ -11,9 +11,9 @@ A web-based progressive web app (PWA) for EV drivers to find chargers, start ses
 
 **Two layers:**
 - **Engine** — agnostic, open-sourceable. Routes, API proxy, plugin loader, feature flags, service worker.
-- **Skin** — branding, CSS, custom templates. Stroomlijnen skin is private. Others can make their own.
+- **Skin** — branding, CSS, custom templates. Operators can create their own skins.
 
-The engine doesn't know about Stroomlijnen. The skin makes it Stroomlijnen.
+The engine is skin-agnostic. The skin applies operator-specific branding.
 
 ---
 
@@ -67,7 +67,7 @@ opencpo-charge-app/
 │   ├── home.js                Map + discovery JS
 │   └── session.js             Live session JS
 ├── skins/                     Skin overrides
-│   └── stroomlijnen/          Our premium skin
+│   └── stroomlijnen/          Example branded skin
 │       ├── skin.json          Metadata: name, colors, fonts
 │       ├── static/
 │       │   └── style.css      Full CSS override
@@ -83,7 +83,7 @@ opencpo-charge-app/
 ```python
 # config.py
 PLUGINS = os.getenv("PLUGINS", "receipts,pwa").split(",")
-SKIN = os.getenv("SKIN", "stroomlijnen")
+SKIN = os.getenv("SKIN", "default")
 ```
 
 ```python
@@ -155,7 +155,7 @@ templates = Jinja2Templates(directory=template_dirs)
 
 ### What This Means
 - Open-source users: clean functional UX (base templates + base CSS)
-- Stroomlijnen: premium dark theme, animations, branding (skin override)
+- Stroomlijnen: example branded skin (dark theme, animations, custom branding)
 - Other CPOs: their own skin, same engine + same plugins
 
 ---
