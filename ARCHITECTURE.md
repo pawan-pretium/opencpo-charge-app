@@ -20,7 +20,7 @@ The engine doesn't know about Stroomlijnen. The skin makes it Stroomlijnen.
 ## 2. Directory Structure
 
 ```
-stroomlijnen-charge-app/
+opencpo-charge-app/
 ├── main.py                    App entry — route registration, plugin loader
 ├── config.py                  Env-based config (CORE_API, SKIN, PLUGINS)
 ├── core/                      Engine (open-source)

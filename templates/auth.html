@@ -343,7 +343,7 @@ async function submitPhoneWithEmail(skip) {
       return;
     }
     localStorage.setItem('active_session_id', data.session_id);
-    window.location.href = data.mollie_checkout_url;
+    window.location.href = data.checkout_url;
   } catch(e) {
     errEl.innerHTML = '<div class="error-card">' + (I18N.err_connection || 'Verbindingsfout. Probeer opnieuw.') + '</div>';
   }
@@ -379,7 +379,7 @@ async function submitEmail() {
       return;
     }
     localStorage.setItem('active_session_id', data.session_id);
-    window.location.href = data.mollie_checkout_url;
+    window.location.href = data.checkout_url;
   } catch(e) {
     errEl.innerHTML = '<div class="error-card">' + (I18N.err_connection || 'Verbindingsfout. Probeer opnieuw.') + '</div>';
     btn.disabled = false;

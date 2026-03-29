@@ -141,7 +141,7 @@ async function loadReceipt() {
         '<div class="receipt-row"><span class="label">' + (I18N.receipt_vat || 'BTW (21%)') + '</span><span class="value">' + formatEuro(vat) + '</span></div>' +
         '<div class="receipt-row total"><span>' + (I18N.receipt_total || 'Totaal betaald') + '</span><span>' + formatEuro(total) + '</span></div>' +
         '<div class="divider"></div>' +
-        '<div class="receipt-row"><span class="label">' + (I18N.receipt_method || 'Betaalmethode') + '</span><span class="value">iDEAL</span></div>' +
+        '<div class="receipt-row"><span class="label">' + (I18N.receipt_method || 'Betaalmethode') + '</span><span class="value">' + (session.payment_method || 'Card') + '</span></div>' +
         '<div class="receipt-row"><span class="label">' + (I18N.receipt_ref || 'Referentie') + '</span><span class="value" style="font-size:12px;">' + refStr + '</span></div>' +
       '</div>' +
       '<a href="/api/sessions/' + SESSION_ID + '/pdf" target="_blank" class="btn btn-pdf">' +

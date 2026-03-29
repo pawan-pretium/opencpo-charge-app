@@ -12,7 +12,7 @@ _CACHE_TTL: int = 10  # seconds
 
 
 async def get_flags() -> dict:
-    """Return feature flags dict. Cached for 60s. Returns {} on error."""
+    """Return feature flags dict. Cached for 10s. Returns {} on error."""
     global _cache, _cache_ts
     now = time.monotonic()
     if now - _cache_ts < _CACHE_TTL and _cache is not None:

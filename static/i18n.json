@@ -263,7 +263,7 @@
     "step1_connect": "Step 1: Connect the cable",
     "step1_desc": "Connect the charging cable to your car",
     "step2_pay": "Step 2: Pay",
-    "step2_desc": "Pay securely with iDEAL",
+    "step2_desc": "Pay securely",
     "charge_nearby": "Charging near you",
     "preauth_label": "authorisation",
     "preauth_detail": "You only pay for the energy actually used.",
@@ -387,4 +387,4 @@
     "err_stop_friendly": "Could not stop the charger. Please try again.",
     "charge_ready": "✓ Ready →"
   }
-}
+}}

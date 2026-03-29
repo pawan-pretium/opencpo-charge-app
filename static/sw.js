@@ -42,7 +42,7 @@ self.addEventListener('fetch', e => {
 self.addEventListener('push', e => {
   const data = e.data ? e.data.json() : {};
   e.waitUntil(self.registration.showNotification(
-    data.title || '⚡ Stroomlijnen',
+    data.title || '⚡ Charging update',
     {
       body: data.body || 'Laden voltooid',
       icon: '/static/icon-192.png',

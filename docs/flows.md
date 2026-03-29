@@ -143,7 +143,7 @@ sequenceDiagram
     actor Driver
     participant App as Charge App
     participant Core as Core API
-    participant Mollie as Mollie Payment
+    participant Mollie as PSP as Payment Provider
 
     Driver->>App: GET /charge/{cp_id}/{connector}
     App->>Core: GET /api/v1/chargers/{cp_id}
@@ -185,6 +185,8 @@ sequenceDiagram
     Core-->>App: PDF (with payment reference, VAT, line items)
     App-->>Driver: Receipt PDF download
 ```
+
+> **Note:** Mollie is the reference PSP implementation. Any payment provider can be integrated via Core API — the charge app only handles the redirect and webhook confirmation.
 
 ### Payment Feature Flag
 

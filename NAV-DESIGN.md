@@ -28,7 +28,7 @@
 On charge screen, auth, session, receipt, profile, history:
 ```
 ┌────────────────────────────────────────┐
-│  ← Back    ⚡ Stroomlijnen             │
+│  ← Back    ⚡ OpenCPO             │
 └────────────────────────────────────────┘
 ```
 - Left: back arrow → previous page or home

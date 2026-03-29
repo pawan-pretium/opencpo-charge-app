@@ -52,7 +52,7 @@ All features controlled by backend flags. Admin panel toggles them. App reads fl
 
 - Anonymous driver: PDF available via session link + SMS link
 - Logged-in driver: PDF + emailed automatically with account details
-- All receipts: VAT-compliant, Stroomlijnen B.V. details, session data, tariff breakdown
+- All receipts: VAT-compliant, operator details (configured via env), session data, tariff breakdown
 - Format: proper PDF (reportlab or weasyprint), not plaintext
 
 ## Architecture (per architecture-v2.md section 19)

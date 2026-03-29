@@ -11,6 +11,8 @@ import jwt
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
+import os
+
 import config
 
 logger = logging.getLogger(__name__)
@@ -181,7 +183,7 @@ async def api_login(request: Request):
             key=COOKIE_NAME,
             value=token,
             httponly=True,
-            secure=False,  # set True in production with HTTPS
+            secure=os.getenv("COOKIE_SECURE", "false").lower() == "true",
             samesite="lax",
             max_age=COOKIE_MAX_AGE,
             path="/",
@@ -204,7 +206,7 @@ async def api_register(request: Request):
             key=COOKIE_NAME,
             value=token,
             httponly=True,
-            secure=False,
+            secure=os.getenv("COOKIE_SECURE", "false").lower() == "true",
             samesite="lax",
             max_age=COOKIE_MAX_AGE,
             path="/",
