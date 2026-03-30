@@ -1,15 +1,31 @@
 """Auth routes: OTP flow for driver identification."""
+import logging
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi import HTTPException
 
 from core.api import api_post
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
 @router.get("/auth/{cp_id}/{connector}", response_class=HTMLResponse)
-async def auth_screen(request: Request, cp_id: str, connector: int):
+async def auth_screen(request: Request, cp_id: str, connector: str):
+    try:
+        connector = int(connector)
+    except (ValueError, TypeError):
+        logger.error(f"Invalid connector '{connector}' for {cp_id} — refusing to default")
+        templates = request.app.state.templates
+        flags = getattr(request.state, "flags", {})
+        return templates.TemplateResponse(request, "error.html", {
+            "message": "Invalid connector",
+            "detail": "The connector could not be determined. Please scan the QR code again.",
+            "flags": flags,
+            "t": getattr(request.state, "t", {}),
+            "lang": getattr(request.state, "lang", "nl"),
+        }, status_code=400)
     templates = request.app.state.templates
     flags = getattr(request.state, "flags", {})
     return templates.TemplateResponse(request, "auth.html", {

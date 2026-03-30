@@ -10,7 +10,20 @@ router = APIRouter()
 
 
 @router.get("/charge/{cp_id}/{connector}", response_class=HTMLResponse)
-async def charge_screen(request: Request, cp_id: str, connector: int):
+async def charge_screen(request: Request, cp_id: str, connector: str):
+    try:
+        connector = int(connector)
+    except (ValueError, TypeError):
+        logger.error(f"Invalid connector '{connector}' for {cp_id} — refusing to default")
+        templates = request.app.state.templates
+        flags = getattr(request.state, "flags", {})
+        return templates.TemplateResponse(request, "error.html", {
+            "message": "Invalid connector",
+            "detail": "The connector could not be determined. Please scan the QR code again.",
+            "flags": flags,
+            "t": getattr(request.state, "t", {}),
+            "lang": getattr(request.state, "lang", "nl"),
+        }, status_code=400)
     templates = request.app.state.templates
     flags = getattr(request.state, "flags", {})
 

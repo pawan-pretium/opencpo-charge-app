@@ -152,6 +152,17 @@ var I18N = {{ t | tojson if t is defined else '{}' }};
 var _otpPhone = '';
 var _resendTimer = null;
 var _driverToken = null;
+var _submitPending = false;
+
+// Restore connector from sessionStorage if we return from a redirect with wrong URL
+// (e.g. payment provider redirects back to /auth/cp/1 when we started with connector 2)
+(function() {
+  var storedCpId = sessionStorage.getItem('auth_cp_id');
+  var storedConnector = sessionStorage.getItem('auth_connector');
+  if (storedCpId === String(CP_ID) && storedConnector) {
+    CONNECTOR = parseInt(storedConnector, 10);
+  }
+})();
 
 // Auto-fill saved phone
 (function() {
@@ -236,6 +247,10 @@ async function sendOtp() {
   btn.disabled = true;
   btn.textContent = (I18N.resending || 'Versturen\u2026');
   errEl.innerHTML = '';
+  // Store cp_id and connector in sessionStorage before OTP flow starts
+  // This ensures the correct connector survives any page reloads or payment redirects
+  sessionStorage.setItem('auth_cp_id', String(CP_ID));
+  sessionStorage.setItem('auth_connector', String(CONNECTOR));
   try {
     var r = await fetch('/api/auth/send-otp', {
       method: 'POST',
@@ -322,17 +337,26 @@ async function verifyOtp() {
 }
 
 async function submitPhoneWithEmail(skip) {
+  if (_submitPending) return;
   var email = skip ? null : (document.getElementById('email-receipt-input').value.trim() || null);
   var phone = localStorage.getItem('driver_phone');
   var errEl = document.getElementById('email-receipt-error');
   errEl.innerHTML = '';
+  _submitPending = true;
+  // Disable both buttons to prevent duplicate session creation
+  var continueBtn = document.querySelector('#email-receipt-step .btn-primary');
+  var skipBtn = document.querySelector('#email-receipt-step .btn-ghost');
+  if (continueBtn) { continueBtn.disabled = true; }
+  if (skipBtn) { skipBtn.disabled = true; }
+  // Use the connector stored in sessionStorage (may differ from CONNECTOR if redirected with wrong URL)
+  var connectorToUse = parseInt(sessionStorage.getItem('auth_connector') || CONNECTOR, 10);
   try {
     var r = await fetch('/api/sessions/create', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
         cp_id: CP_ID,
-        connector_id: parseInt(CONNECTOR),
+        connector_id: connectorToUse,
         driver_phone: phone,
         driver_email: email
       })
@@ -340,12 +364,21 @@ async function submitPhoneWithEmail(skip) {
     var data = await r.json();
     if (!r.ok || data.error) {
       errEl.innerHTML = '<div class="error-card">' + (data.error || data.detail || (I18N.err_session || 'Fout bij aanmaken sessie')) + '</div>';
+      _submitPending = false;
+      if (continueBtn) { continueBtn.disabled = false; }
+      if (skipBtn) { skipBtn.disabled = false; }
       return;
     }
     localStorage.setItem('active_session_id', data.session_id);
+    localStorage.removeItem('driver_token');
+    sessionStorage.removeItem('auth_cp_id');
+    sessionStorage.removeItem('auth_connector');
     window.location.href = data.checkout_url;
   } catch(e) {
     errEl.innerHTML = '<div class="error-card">' + (I18N.err_connection || 'Verbindingsfout. Probeer opnieuw.') + '</div>';
+    _submitPending = false;
+    if (continueBtn) { continueBtn.disabled = false; }
+    if (skipBtn) { skipBtn.disabled = false; }
   }
 }
 
@@ -366,7 +399,7 @@ async function submitEmail() {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
         cp_id: CP_ID,
-        connector_id: parseInt(CONNECTOR),
+        connector_id: parseInt(sessionStorage.getItem('auth_connector') || CONNECTOR, 10),
         driver_email: email,
         driver_phone: null
       })
