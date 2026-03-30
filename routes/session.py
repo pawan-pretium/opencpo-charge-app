@@ -38,6 +38,29 @@ async def create_session(request: Request):
             # Endpoint may not exist or return 404 — not fatal, proceed to create
             pass
 
+    # Check connector status via OCPP Core API before creating session.
+    # If connector is Charging/Occupied, reject with a user-friendly error.
+    if cp_id and connector_id:
+        try:
+            charger_data = await api_get(f"/api/v1/chargers/{cp_id}")
+            occupied_statuses = {"Charging", "SuspendedEV", "SuspendedEVSE", "Finishing", "Occupied"}
+            for conn in charger_data.get("connectors", []):
+                cid = conn.get("connector_id") or conn.get("id")
+                if cid == connector_id:
+                    status = conn.get("status", "Available")
+                    if status in occupied_statuses:
+                        logger.warning(
+                            f"Session creation blocked: {cp_id} connector {connector_id} is {status}"
+                        )
+                        return JSONResponse(
+                            {"error": "Connector busy — this connector is already in use."},
+                            status_code=409,
+                        )
+                    break
+        except Exception as e:
+            # Non-fatal: if we can't check status, proceed and let Core API decide
+            logger.warning(f"Could not check connector status for {cp_id}/{connector_id}: {e}")
+
     try:
         result = await api_post("/api/v1/public/sessions", body)
         return JSONResponse(result)
