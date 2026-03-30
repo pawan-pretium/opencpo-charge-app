@@ -1,9 +1,12 @@
 """Session routes: create, live view, poll, stop, cancel."""
+import logging
+
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 
 from core.api import api_get, api_post
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -13,6 +16,28 @@ async def create_session(request: Request):
     # Map phone → driver_phone if needed (auth form sends "phone")
     if "phone" in body and "driver_phone" not in body:
         body["driver_phone"] = body.pop("phone")
+
+    cp_id = body.get("cp_id")
+    connector_id = body.get("connector_id")
+    driver_phone = body.get("driver_phone")
+
+    # Deduplication: check for existing pending/unconfirmed session for this
+    # phone+charger+connector to avoid creating duplicate sessions on redirect loops.
+    if driver_phone and cp_id:
+        try:
+            existing = await api_get(
+                f"/api/v1/public/sessions/pending?cp_id={cp_id}&driver_phone={driver_phone}"
+            )
+            # If a pending session exists for the SAME connector, reuse it
+            if existing and isinstance(existing, dict):
+                ex_connector = existing.get("connector_id")
+                ex_status = existing.get("status", "")
+                if ex_connector == connector_id and ex_status in ("pending", "awaiting_payment"):
+                    return JSONResponse(existing)
+        except Exception:
+            # Endpoint may not exist or return 404 — not fatal, proceed to create
+            pass
+
     try:
         result = await api_post("/api/v1/public/sessions", body)
         return JSONResponse(result)
