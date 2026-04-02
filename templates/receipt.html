@@ -72,7 +72,7 @@ async function loadReceipt() {
     }
 
     // Cancelled or never started — show cancellation notice, not a receipt
-    if (session.mollie_status === 'cancelled' || session.mollie_status === 'charger_offline' || (!session.started_at && session.stopped_at)) {
+    if (session.payment_status === 'cancelled' || session.payment_status === 'charger_offline' || (!session.started_at && session.stopped_at)) {
       document.getElementById('receipt-content').innerHTML =
         '<div style="text-align:center;padding:40px 20px;">' +
         '<div style="font-size:48px;margin-bottom:16px;">❌</div>' +

@@ -168,12 +168,12 @@ async function pollSession() {
       return;
     }
 
-    if (session.mollie_status === 'pending') {
+    if (session.payment_status === 'pending') {
       showState('pending');
       return;
     }
 
-    if (['failed', 'expired', 'canceled'].includes(session.mollie_status)) {
+    if (['failed', 'expired', 'canceled'].includes(session.payment_status)) {
       clearInterval(_pollInterval);
       clearInterval(_durationInterval);
       ['pending','starting','finishing','charging'].forEach(function(s) {
@@ -181,8 +181,8 @@ async function pollSession() {
       });
       document.getElementById('stop-btn').style.display = 'none';
       statusNote.style.display = 'block';
-      statusNote.innerHTML = '❌ <strong>' + (I18N.err_payment_status || 'Betaling') + ' ' +
-        session.mollie_status + '.</strong> ' + (I18N.err_try_again || 'Probeer opnieuw.');
+      statusNote.innerHTML = '❌ <strong>' + (I18N.err_payment_status || 'Payment') + ' ' +
+        session.payment_status + '.</strong> ' + (I18N.err_try_again || 'Please try again.');
       return;
     }
 
