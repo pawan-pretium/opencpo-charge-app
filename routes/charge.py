@@ -41,24 +41,55 @@ async def charge_screen(request: Request, cp_id: str, connector: str):
 
     conn_status = "Available"
     if charger_data:
-        for c in charger_data.get("connectors", []):
-            if c.get("connector_id") == connector or c.get("id") == connector:
-                conn_status = c.get("status", "Available")
-                break
+        # Check live connector status first (real-time from OCPP heartbeat)
+        live = charger_data.get("live", {})
+        live_status_key = f"connector_{connector}_status"
+        live_status = live.get(live_status_key) if live else None
+        if live_status:
+            conn_status = live_status
+        else:
+            # Fall back to connectors array from charger config
+            for c in charger_data.get("connectors", []):
+                if c.get("connector_id") == connector or c.get("id") == connector:
+                    conn_status = c.get("status", "Available")
+                    break
 
     rate_value = None
-    rate_label = "Vast tarief"
+    rate_label = "Fixed rate"
     preauth_amount = "€25"
     tariff_kwh_raw = 0.0
     charger_power_kw = 0.0
     address = ""
     lat = None
     lng = None
-    if charger_data:
-        tariff = charger_data.get("tariff_kwh")
-        if tariff:
-            tariff_kwh_raw = float(tariff)
+    pricing_tier = "public"
+
+    # Determine driver's pricing tier from cert/JWT identity
+    account = getattr(request.state, "account", None)
+    if account:
+        pricing_tier = account.get("pricing_tier", "public")
+
+    # Fetch dynamic tier pricing (independent of charger availability)
+    try:
+        pricing = await api_get("/api/v1/pricing/current")
+        tier_data = pricing.get("tiers", {}).get(pricing_tier, {})
+        tier_rate = tier_data.get("rate_incl")
+        if tier_rate:
+            tariff_kwh_raw = float(tier_rate)
             rate_value = f"€ {tariff_kwh_raw:.4f}/kWh".replace(".", ",")
+            tier_name = tier_data.get("name", pricing_tier)
+            rate_label = f"{tier_name} rate" if pricing_tier != "public" else "Rate"
+    except Exception:
+        pass
+
+    if charger_data:
+        # Fallback: charger's flat tariff if dynamic pricing unavailable
+        if rate_value is None:
+            tariff = charger_data.get("tariff_kwh")
+            if tariff:
+                tariff_kwh_raw = float(tariff)
+                rate_value = f"€ {tariff_kwh_raw:.4f}/kWh".replace(".", ",")
+
         power = charger_data.get("max_power_kw") or charger_data.get("power_kw") or 0
         charger_power_kw = float(power)
         address = charger_data.get("address") or charger_data.get("location") or ""

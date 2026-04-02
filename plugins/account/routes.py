@@ -4,14 +4,13 @@ The charge app is a thin proxy: all logic lives in Core API.
 JWT stored in HttpOnly cookie 'auth_token'.
 """
 import logging
+import os
 from typing import Optional
 
 import httpx
 import jwt
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
-
-import os
 
 import config
 
@@ -60,7 +59,7 @@ async def _proxy_to_core(
     try:
         data = r.json()
     except Exception:
-        data = {"detail": "Serverfout"}
+        data = {"detail": "Server error"}
 
     return r.status_code, data
 
@@ -104,7 +103,6 @@ async def register_page(request: Request):
     flags = getattr(request.state, "flags", {})
     t = getattr(request.state, "t", {})
     lang = getattr(request.state, "lang", "nl")
-    # Pre-fill phone from OTP session stored in localStorage (JS reads it)
     return templates.TemplateResponse(request, "account/register.html", {
         "flags": flags, "t": t, "lang": lang,
         "account": None,
@@ -119,18 +117,29 @@ async def profile_page(request: Request):
     if redirect:
         return redirect
     account = _get_account_from_request(request)
-    token = request.cookies.get(COOKIE_NAME)
+    auth_method = getattr(request.state, "auth_method", None)
     flags = getattr(request.state, "flags", {})
     t = getattr(request.state, "t", {})
     lang = getattr(request.state, "lang", "nl")
 
-    # Fetch fresh profile from Core API
-    status, data = await _proxy_to_core("GET", "/api/v1/public/account/profile", token=token)
-    if status != 200:
-        # Token invalid — clear cookie and redirect
-        resp = RedirectResponse("/account/login", status_code=302)
-        resp.delete_cookie(COOKIE_NAME)
-        return resp
+    if auth_method == "cert":
+        # Cert-authenticated: account data already resolved by middleware
+        data = {
+            "email": account.get("email", ""),
+            "name": account.get("name", ""),
+            "phone": account.get("phone", ""),
+            "language": account.get("language", "nl"),
+            "pricing_tier": account.get("pricing_tier", "public"),
+            "auth_method": "cert",
+        }
+    else:
+        # JWT-authenticated: fetch fresh profile from Core API
+        token = request.cookies.get(COOKIE_NAME)
+        status, data = await _proxy_to_core("GET", "/api/v1/public/account/profile", token=token)
+        if status != 200:
+            resp = RedirectResponse("/account/login", status_code=302)
+            resp.delete_cookie(COOKIE_NAME)
+            return resp
 
     return templates.TemplateResponse(request, "account/profile.html", {
         "flags": flags, "t": t, "lang": lang,
@@ -174,7 +183,7 @@ async def api_login(request: Request):
     status, data = await _proxy_to_core("POST", "/api/v1/public/account/login", body=body)
 
     if status != 200:
-        return JSONResponse({"error": data.get("detail", "Inloggen mislukt")}, status_code=status)
+        return JSONResponse({"error": data.get("detail", "Login failed")}, status_code=status)
 
     token = data.get("token")
     resp = JSONResponse({"ok": True, "account": data.get("account")})
@@ -197,7 +206,7 @@ async def api_register(request: Request):
     status, data = await _proxy_to_core("POST", "/api/v1/public/account/register", body=body)
 
     if status != 200:
-        return JSONResponse({"error": data.get("detail", "Registratie mislukt")}, status_code=status)
+        return JSONResponse({"error": data.get("detail", "Registration failed")}, status_code=status)
 
     token = data.get("token")
     resp = JSONResponse({"ok": True, "account": data.get("account")})
@@ -221,13 +230,24 @@ async def api_logout(request: Request):
     return resp
 
 
+@router.get("/api/account/sessions")
+async def api_sessions(request: Request):
+    token = request.cookies.get(COOKIE_NAME)
+    if not token:
+        return JSONResponse({"error": "Not logged in"}, status_code=401)
+    status, data = await _proxy_to_core("GET", "/api/v1/public/account/sessions", token=token)
+    if status != 200:
+        return JSONResponse({"error": data.get("detail", "Error")}, status_code=status)
+    return JSONResponse(data)
+
+
 @router.put("/api/account/profile")
 async def api_update_profile(request: Request):
     token = request.cookies.get(COOKIE_NAME)
     if not token:
-        return JSONResponse({"error": "Niet ingelogd"}, status_code=401)
+        return JSONResponse({"error": "Not logged in"}, status_code=401)
     body = await request.json()
     status, data = await _proxy_to_core("PUT", "/api/v1/public/account/profile", body=body, token=token)
     if status != 200:
-        return JSONResponse({"error": data.get("detail", "Fout bij opslaan")}, status_code=status)
+        return JSONResponse({"error": data.get("detail", "Error saving profile")}, status_code=status)
     return JSONResponse({"ok": True, "profile": data})

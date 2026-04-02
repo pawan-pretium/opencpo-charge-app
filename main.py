@@ -42,9 +42,9 @@ templates.env.globals["app_title"] = config.APP_TITLE
 app.state.templates = templates
 
 # ── Routes ────────────────────────────────────────────────────────────────
-from routes import home, charge, auth, session, receipt, qr, push
+from routes import home, charge, auth, session, receipt, qr, push, cert_setup
 
-for router in [home.router, charge.router, auth.router, session.router, receipt.router, qr.router, push.router]:
+for router in [home.router, charge.router, auth.router, session.router, receipt.router, qr.router, push.router, cert_setup.router]:
     app.include_router(router)
 
 # ── Plugins ───────────────────────────────────────────────────────────────

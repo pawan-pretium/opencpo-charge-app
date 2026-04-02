@@ -7,6 +7,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from core.api import api_get, api_post
 
 logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 
@@ -39,24 +40,36 @@ async def create_session(request: Request):
             pass
 
     # Check connector status via OCPP Core API before creating session.
-    # If connector is Charging/Occupied, reject with a user-friendly error.
+    # If connector is Charging/Occupied, reject with a user-friendly error
+    # instead of taking payment for a session that will be rejected by the charger.
     if cp_id and connector_id:
         try:
             charger_data = await api_get(f"/api/v1/chargers/{cp_id}")
             occupied_statuses = {"Charging", "SuspendedEV", "SuspendedEVSE", "Finishing", "Occupied"}
-            for conn in charger_data.get("connectors", []):
-                cid = conn.get("connector_id") or conn.get("id")
-                if cid == connector_id:
-                    status = conn.get("status", "Available")
-                    if status in occupied_statuses:
-                        logger.warning(
-                            f"Session creation blocked: {cp_id} connector {connector_id} is {status}"
-                        )
-                        return JSONResponse(
-                            {"error": "Connector busy — this connector is already in use."},
-                            status_code=409,
-                        )
-                    break
+            conn_status = None
+
+            # Check live status first (real-time from OCPP heartbeat)
+            live = charger_data.get("live", {})
+            if live:
+                live_key = f"connector_{connector_id}_status"
+                conn_status = live.get(live_key)
+
+            # Fall back to connectors array
+            if not conn_status:
+                for conn in charger_data.get("connectors", []):
+                    cid = conn.get("connector_id") or conn.get("id")
+                    if cid == connector_id:
+                        conn_status = conn.get("status")
+                        break
+
+            if conn_status and conn_status in occupied_statuses:
+                logger.warning(
+                    f"Session creation blocked: {cp_id} connector {connector_id} is {conn_status}"
+                )
+                return JSONResponse(
+                    {"error": "Connector busy — this connector is already in use."},
+                    status_code=409,
+                )
         except Exception as e:
             # Non-fatal: if we can't check status, proceed and let Core API decide
             logger.warning(f"Could not check connector status for {cp_id}/{connector_id}: {e}")
