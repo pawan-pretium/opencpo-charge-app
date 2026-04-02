@@ -28,9 +28,9 @@
       <label class="form-label">{{ t.password | default('Wachtwoord') }}</label>
       <input class="form-input" id="reg-password" type="password" placeholder="{{ t.choose_password | default('Kies een wachtwoord') }}" autocomplete="new-password" style="font-size:16px;padding:14px 16px;" />
     </div>
-    <button class="btn btn-primary" style="margin-top:24px;" id="reg-btn" onclick="doRegister()">{{ t.register | default('Registreren') }} →</button>
+    <button class="btn btn-primary" style="margin-top:24px;" id="reg-btn" onclick="doRegister()">{{ t.register | default('Register') }} →</button>
     <div style="margin-top:20px;text-align:center;">
-      <a href="/account/login" class="text-muted" style="font-size:14px;">{{ t.already_account | default('Al een account?') }} <strong style="color:var(--primary);">{{ t.login | default('Inloggen') }}</strong></a>
+      <a href="/account/login" class="text-muted" style="font-size:14px;">{{ t.already_account | default('Already have an account?') }} <strong style="color:var(--primary);">{{ t.login | default('Log in') }}</strong></a>
     </div>
   </div>
 </div>
@@ -47,9 +47,10 @@ async function doRegister(){
   try{
     var r=await fetch('/api/account/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name||null,email:email,phone:phone||null,password:pw})});
     var data=await r.json();
-    if(!r.ok||data.error){err.innerHTML='<div class="error-card">'+(data.error||(I18N.register_failed||'Registratie mislukt'))+'</div>';btn.disabled=false;btn.textContent=(I18N.register||'Registreren')+' →';return;}
+    if(!r.ok||data.error){err.innerHTML='<div class="error-card">'+(data.error||(I18N.register_failed||'Registration failed'))+'</div>';btn.disabled=false;btn.textContent=(I18N.register||'Register')+' →';return;}
     window.location.href='/account/profile';
-  }catch(e){err.innerHTML='<div class="error-card">'+(I18N.connection_error||'Verbindingsfout')+'</div>';btn.disabled=false;btn.textContent=(I18N.register||'Registreren')+' →';}
+  }catch(e){err.innerHTML='<div class="error-card">'+(I18N.connection_error||'Connection error')+'</div>';btn.disabled=false;btn.textContent=(I18N.register||'Register')+' →';}
 }
 </script>
 {% endblock %}
+}
