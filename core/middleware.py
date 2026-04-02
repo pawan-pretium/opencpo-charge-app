@@ -18,7 +18,7 @@ DEVICE_COOKIE = "device_auth"
 DEVICE_COOKIE_MAX_AGE = 60 * 60 * 24 * 30  # 30 days
 
 SUPPORTED_LANGS = {"nl", "en"}
-DEFAULT_LANG = "nl"
+DEFAULT_LANG = os.environ.get("DEFAULT_LANG", "en")
 
 # Load translations once at import time
 _I18N_PATH = os.path.join(os.path.dirname(__file__), "..", "static", "i18n.json")

@@ -31,7 +31,7 @@ async def qr_landing(request: Request, code: str):
     except HTTPException as e:
         return templates.TemplateResponse(request, "error.html", {
             "message": "QR-code niet gevonden",
-            "detail": "Deze QR-code is niet actief of niet gekoppeld aan een lader.",
+            "detail": "This QR code is not active or not linked to a charger.",
             "code": code,
             "flags": flags,
             "t": getattr(request.state, "t", {}),
@@ -40,7 +40,7 @@ async def qr_landing(request: Request, code: str):
     except Exception as e:
         logger.error(f"QR lookup error: {e}")
         return templates.TemplateResponse(request, "error.html", {
-            "message": "Fout bij opzoeken lader",
+            "message": "Error looking up charger",
             "detail": str(e),
             "code": code,
             "flags": flags,
