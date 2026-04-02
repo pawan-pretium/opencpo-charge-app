@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}{{ t.charging | default('Laden') }} — Live{% endblock %}
+{% block title %}{{ t.charging | default('Charging') }} — Live{% endblock %}
 {% block content %}
 <div class="screen active">
   <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg,#0a1929);border-bottom:1px solid var(--border,#1e3a5f);position:sticky;top:0;z-index:800;">
     <a href="/" style="color:var(--text2,#94a3b8);text-decoration:none;font-size:20px;line-height:1;">←</a>
-    <a href="/" style="display:flex;align-items:center;text-decoration:none;"><img src="/static/logo.png" alt="" style="height:20px;" /></a>
+    <a href="/" style="display:flex;align-items:center;text-decoration:none;"><span style="font-size:16px;font-weight:600;color:#e8edf2;letter-spacing:-0.2px;">Open<span style="color:#4a6580;">CPO</span></span></a>
   </div>
 
   <div class="page-content">
@@ -12,22 +12,22 @@
     <!-- State: waiting for payment -->
     <div id="state-pending" style="display:none; text-align:center; padding:40px 0;">
       <div class="spinner" style="margin-bottom:20px;"></div>
-      <div style="font-size:17px; font-weight:600; color:var(--text2);">{{ t.waiting_payment | default('Wachten op betaling…') }}</div>
-      <div style="font-size:13px; color:var(--text3); margin-top:8px;">{{ t.waiting_payment_subtitle | default('Betaal via de link in uw e-mail') }}</div>
+      <div style="font-size:17px; font-weight:600; color:var(--text2);">{{ t.waiting_payment | default('Waiting for payment…') }}</div>
+      <div style="font-size:13px; color:var(--text3); margin-top:8px;">{{ t.waiting_payment_subtitle | default('Pay via the link in your email') }}</div>
     </div>
 
     <!-- State: starting -->
     <div id="state-starting" style="display:none; text-align:center; padding:40px 0;">
       <div class="spinner" style="margin-bottom:20px;"></div>
-      <div style="font-size:17px; font-weight:600; color:var(--text2);">{{ t.session_starting | default('Lader wordt gestart…') }}</div>
-      <div style="font-size:13px; color:var(--text3); margin-top:8px;">{{ t.session_starting_subtitle | default('Sluit de kabel aan als dat nog niet gedaan is') }}</div>
+      <div style="font-size:17px; font-weight:600; color:var(--text2);">{{ t.session_starting | default('Starting charger…') }}</div>
+      <div style="font-size:13px; color:var(--text3); margin-top:8px;">{{ t.session_starting_subtitle | default('Connect the cable if not already done') }}</div>
     </div>
 
     <!-- State: finishing -->
     <div id="state-finishing" style="display:none; text-align:center; padding:40px 0;">
       <div class="spinner" style="margin-bottom:20px;"></div>
-      <div style="font-size:17px; font-weight:600; color:var(--text2);">{{ t.session_finishing | default('Sessie wordt afgerond…') }}</div>
-      <div style="font-size:13px; color:var(--text3); margin-top:8px;">{{ t.session_finishing_subtitle | default('Even geduld, uw bon wordt klaargezet') }}</div>
+      <div style="font-size:17px; font-weight:600; color:var(--text2);">{{ t.session_finishing | default('Finishing session…') }}</div>
+      <div style="font-size:13px; color:var(--text3); margin-top:8px;">{{ t.session_finishing_subtitle | default('Please wait, your receipt is being prepared') }}</div>
     </div>
 
     <!-- State: charging -->
@@ -62,22 +62,22 @@
       <!-- Stats card -->
       <div class="session-stats">
         <div class="stat-row">
-          <span class="stat-label">⚡ {{ t.energy | default('Energie') }}</span>
+          <span class="stat-label">⚡ {{ t.energy | default('Energy') }}</span>
           <span class="stat-value mono" id="kwh-val">— kWh</span>
         </div>
         <div class="stat-row">
-          <span class="stat-label">⏱ {{ t.duration | default('Duur') }}</span>
+          <span class="stat-label">⏱ {{ t.duration | default('Duration') }}</span>
           <span class="stat-value mono" id="duration-val">—</span>
         </div>
         <div class="stat-row">
-          <span class="stat-label">💰 {{ t.cost | default('Kosten') }}</span>
+          <span class="stat-label">💰 {{ t.cost | default('Cost') }}</span>
           <div style="text-align:right;">
             <span class="stat-value mono" id="cost-val">—</span>
-            <div style="font-size:11px; color:var(--text3); margin-top:2px;">{{ t.incl_btw | default('incl. 21% BTW') }}</div>
+            <div style="font-size:11px; color:var(--text3); margin-top:2px;">{{ t.incl_btw | default('incl. VAT') }}</div>
           </div>
         </div>
         <div class="stat-row">
-          <span class="stat-label">📊 {{ t.power | default('Vermogen') }}</span>
+          <span class="stat-label">📊 {{ t.power | default('Power') }}</span>
           <span class="stat-value mono" id="rate-val">—</span>
         </div>
       </div>
@@ -87,7 +87,7 @@
       <div id="co2-badge" style="margin-top:12px; padding:10px 14px; background:rgba(132,189,0,0.12); border:1px solid #84BD00; border-radius:10px; display:flex; align-items:center; gap:10px;">
         <span style="font-size:20px;">🌱</span>
         <div>
-          <div style="font-size:13px; color:#84BD00; font-weight:600;">{{ t.co2_saved | default('CO₂ bespaard') }}</div>
+          <div style="font-size:13px; color:#84BD00; font-weight:600;">{{ t.co2_saved | default('CO₂ saved') }}</div>
           <div id="co2-val" style="font-size:18px; font-weight:700; color:#fff;">— kg</div>
         </div>
       </div>
@@ -99,14 +99,14 @@
 
     <!-- Stuck session warning (shown after 90s in starting state) -->
     <div id="stuck-warning" style="display:none;margin-top:20px;padding:16px;background:rgba(239,68,68,0.12);border:1px solid #ef4444;border-radius:10px;text-align:center;">
-      <div style="font-size:16px;font-weight:700;color:#ef4444;margin-bottom:8px;">⚠️ {{ t.charger_not_responding | default('Lader reageert niet') }}</div>
+      <div style="font-size:16px;font-weight:700;color:#ef4444;margin-bottom:8px;">⚠️ {{ t.charger_not_responding | default('Charger not responding') }}</div>
       <button class="btn btn-danger" onclick="cancelStuckSession()" style="width:100%;">
-        {{ t.cancel_return_home | default('Annuleren en terug') }}
+        {{ t.cancel_return_home | default('Cancel and go back') }}
       </button>
     </div>
 
     <button class="btn btn-danger" id="stop-btn" style="display:none;" onclick="confirmStop()">
-      ■ {{ t.stop_charging | default('Stoppen met laden') }}
+      ■ {{ t.stop_charging | default('Stop charging') }}
     </button>
   </div>
 </div>
@@ -164,7 +164,7 @@ async function pollSession() {
 
     if (session.error) {
       document.getElementById('session-error').innerHTML =
-        '<div class="error-card">' + (I18N.err_poll_friendly || 'Er ging iets mis. Ververs de pagina.') + '</div>';
+        '<div class="error-card">' + (I18N.err_poll_friendly || 'Something went wrong. Refresh the page.') + '</div>';
       return;
     }
 
@@ -205,8 +205,8 @@ async function pollSession() {
       });
       document.getElementById('stop-btn').style.display = 'none';
       statusNote.style.display = 'block';
-      statusNote.innerHTML = '❌ <strong>' + (I18N.err_charger_offline || 'Lader niet bereikbaar.') + '</strong> ' +
-        (I18N.err_charger_offline_contact || 'Neem contact op met de beheerder.');
+      statusNote.innerHTML = '❌ <strong>' + (I18N.err_charger_offline || 'Charger unreachable.') + '</strong> ' +
+        (I18N.err_charger_offline_contact || 'Please contact the operator.');
       return;
     }
 
@@ -270,14 +270,14 @@ async function pollSession() {
       var infoEl = document.getElementById('charger-info');
       infoEl.style.display = '';
       document.getElementById('charger-name-val').textContent =
-        (I18N.charger || 'Lader') + ' ' + session.cp_id;
+        (I18N.charger || 'Charger') + ' ' + session.cp_id;
       document.getElementById('charger-detail-val').textContent =
         (I18N.connector || 'Connector') + ' ' + (session.connector_id || '—');
     }
 
   } catch(e) {
     document.getElementById('session-error').innerHTML =
-      '<div class="error-card">' + (I18N.err_connection_friendly || 'Verbinding verloren. Controleer uw internet.') + '</div>';
+      '<div class="error-card">' + (I18N.err_connection_friendly || 'Connection lost. Check your internet.') + '</div>';
   }
 }
 
@@ -382,14 +382,14 @@ _pollInterval = setInterval(pollSession, 5000);
 
 async function confirmStop() {
   var kwhTxt = _lastKwh.toFixed(3) + ' kWh';
-  var costTxt = formatEuro(_lastCost) + ' (' + (I18N.incl_btw || 'incl. 21% BTW') + ')';
-  var msg = (I18N.confirm_stop || 'Weet u zeker dat u wilt stoppen met laden?') + '\n\n' +
-            (I18N.confirm_stop_charged || 'Geladen:') + '  ' + kwhTxt + '\n' +
-            (I18N.confirm_stop_cost || 'Kosten:') + '   ' + costTxt;
+  var costTxt = formatEuro(_lastCost) + ' (' + (I18N.incl_btw || 'incl. VAT') + ')';
+  var msg = (I18N.confirm_stop || 'Are you sure you want to stop charging?') + '\n\n' +
+            (I18N.confirm_stop_charged || 'Charged:') + '  ' + kwhTxt + '\n' +
+            (I18N.confirm_stop_cost || 'Cost:') + '   ' + costTxt;
   if (!confirm(msg)) return;
   var btn = document.getElementById('stop-btn');
   btn.disabled = true;
-  btn.textContent = (I18N.stopping || 'Stoppen\u2026');
+  btn.textContent = (I18N.stopping || 'Stopping\u2026');
   try {
     await fetch('/api/sessions/' + SESSION_ID + '/stop', {method: 'POST'});
     clearInterval(_pollInterval);
@@ -400,9 +400,9 @@ async function confirmStop() {
     window.location.href = '/receipt/' + SESSION_ID;
   } catch(e) {
     document.getElementById('session-error').innerHTML =
-      '<div class="error-card">' + (I18N.err_stop_friendly || 'Kon de lader niet stoppen. Probeer opnieuw.') + '</div>';
+      '<div class="error-card">' + (I18N.err_stop_friendly || 'Could not stop the charger. Please try again.') + '</div>';
     btn.disabled = false;
-    btn.textContent = '\u25a0 ' + (I18N.stop_charging || 'Stoppen met laden');
+    btn.textContent = '\u25a0 ' + (I18N.stop_charging || 'Stop charging');
   }
 }
 </script>

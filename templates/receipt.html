@@ -1,16 +1,16 @@
 {% extends "base.html" %}
-{% block title %}{{ t.receipt | default('Laadbon') }} — {{ app_title }}{% endblock %}
+{% block title %}{{ t.receipt | default('Charging receipt') }} — {{ app_title }}{% endblock %}
 {% block content %}
 <div class="screen active">
   <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg,#0a1929);border-bottom:1px solid var(--border,#1e3a5f);position:sticky;top:0;z-index:800;">
     <a href="/" style="color:var(--text2,#94a3b8);text-decoration:none;font-size:20px;line-height:1;">←</a>
-    <a href="/" style="display:flex;align-items:center;text-decoration:none;"><img src="/static/logo.png" alt="" style="height:20px;" /></a>
+    <a href="/" style="display:flex;align-items:center;text-decoration:none;"><span style="font-size:16px;font-weight:600;color:#e8edf2;letter-spacing:-0.2px;">Open<span style="color:#4a6580;">CPO</span></span></a>
   </div>
 
   <div class="page-content">
     <div style="text-align:center;padding:20px 0 8px;">
       <div class="success-icon check-bounce">✅</div>
-      <h2 style="font-size:22px;font-weight:700;">{{ t.receipt_thanks | default('Bedankt voor het laden!') }}</h2>
+      <h2 style="font-size:22px;font-weight:700;">{{ t.receipt_thanks | default('Thank you for charging!') }}</h2>
     </div>
 
     <div id="receipt-content">
@@ -21,15 +21,15 @@
     <div id="co2-receipt-badge" style="display:none; margin:16px 0; padding:12px 16px; background:rgba(132,189,0,0.12); border:1px solid #84BD00; border-radius:10px; align-items:center; gap:12px;">
       <span style="font-size:24px;">🌱</span>
       <div>
-        <div style="font-size:13px; color:#84BD00; font-weight:600;">{{ t.co2_saved | default('CO₂ bespaard') }} {{ t.co2_receipt_note | default('deze sessie') }}</div>
+        <div style="font-size:13px; color:#84BD00; font-weight:600;">{{ t.co2_saved | default('CO₂ saved') }} {{ t.co2_receipt_note | default('this session') }}</div>
         <div id="co2-receipt-val" style="font-size:20px; font-weight:700; color:#fff;">— kg</div>
-        <div style="font-size:11px; color:#6a8aa0; margin-top:2px;">{{ t.co2_vs_petrol | default('vs. equivalente benzinerit') }}</div>
+        <div style="font-size:11px; color:#6a8aa0; margin-top:2px;">{{ t.co2_vs_petrol | default('vs. equivalent petrol trip') }}</div>
       </div>
     </div>
     {% endif %}
 
     <div class="mt-16">
-      <a href="/" class="btn btn-outline">{{ t.charge_again | default('⚡ Opnieuw laden') }}</a>
+      <a href="/" class="btn btn-outline">{{ t.charge_again | default('⚡ Charge again') }}</a>
     </div>
   </div>
 
@@ -66,8 +66,8 @@ async function loadReceipt() {
 
     if (!session || session.error) {
       document.getElementById('receipt-content').innerHTML =
-        '<div class="error-card">' + (I18N.error || 'Fout') + ': ' +
-        (session ? session.error : (I18N.error || 'onbekende fout')) + '</div>';
+        '<div class="error-card">' + (I18N.error || 'Error') + ': ' +
+        (session ? session.error : (I18N.error || 'unknown error')) + '</div>';
       return;
     }
 
@@ -76,9 +76,9 @@ async function loadReceipt() {
       document.getElementById('receipt-content').innerHTML =
         '<div style="text-align:center;padding:40px 20px;">' +
         '<div style="font-size:48px;margin-bottom:16px;">❌</div>' +
-        '<h2 style="font-size:20px;font-weight:700;margin-bottom:8px;">' + (I18N.session_cancelled || 'Sessie geannuleerd') + '</h2>' +
-        '<p style="color:var(--text3);margin-bottom:24px;">' + (I18N.session_cancelled_desc || 'Er is niet geladen. U wordt niet belast.') + '</p>' +
-        '<a href="/" class="btn btn-primary" style="display:inline-block;text-decoration:none;">' + (I18N.back_home || 'Terug naar kaart') + '</a>' +
+        '<h2 style="font-size:20px;font-weight:700;margin-bottom:8px;">' + (I18N.session_cancelled || 'Session cancelled') + '</h2>' +
+        '<p style="color:var(--text3);margin-bottom:24px;">' + (I18N.session_cancelled_desc || 'No charging occurred. You will not be charged.') + '</p>' +
+        '<a href="/" class="btn btn-primary" style="display:inline-block;text-decoration:none;">' + (I18N.back_home || 'Back to map') + '</a>' +
         '</div>';
       return;
     }
@@ -116,10 +116,10 @@ async function loadReceipt() {
     var receiptNote = '';
     if (driverPhone) {
       receiptNote = '<p class="text-muted mt-8">' +
-        (I18N.receipt_sent_to || 'Bon verzonden naar') + ' ' + driverPhone + '</p>';
+        (I18N.receipt_sent_to || 'Receipt sent to') + ' ' + driverPhone + '</p>';
     } else if (session.driver_email) {
       receiptNote = '<p class="text-muted mt-8">' +
-        (I18N.receipt_sent_to || 'Bon verzonden naar') + ' ' + session.driver_email + '</p>';
+        (I18N.receipt_sent_to || 'Receipt sent to') + ' ' + session.driver_email + '</p>';
     }
 
     var refStr = session.id ? session.id.slice(0, 8).toUpperCase() : '—';
@@ -128,28 +128,28 @@ async function loadReceipt() {
       receiptNote +
       '<div class="receipt-card">' +
         '<div class="receipt-header">' +
-          '<div class="receipt-title" style="color:var(--accent);">' + (I18N.receipt || 'Laadbon') + '</div>' +
+          '<div class="receipt-title" style="color:var(--accent);">' + (I18N.receipt || 'Charging receipt') + '</div>' +
           '<div class="receipt-subtitle">' + startDate + '</div>' +
         '</div>' +
-        '<div class="receipt-row"><span class="label">' + (I18N.receipt_location || 'Locatie') + '</span><span class="value">' + cpName + '</span></div>' +
-        '<div class="receipt-row"><span class="label">' + (I18N.receipt_port || 'Aansluiting') + '</span><span class="value">Port ' + (session.connector_id || '—') + '</span></div>' +
-        '<div class="receipt-row"><span class="label">' + (I18N.receipt_duration || 'Duur') + '</span><span class="value">' + durationStr + '</span></div>' +
-        '<div class="receipt-row"><span class="label">' + (I18N.receipt_energy || 'Geleverde energie') + '</span><span class="value">' + kwh.toFixed(3) + ' kWh</span></div>' +
-        '<div class="receipt-row"><span class="label">' + (I18N.receipt_rate || 'Tarief (excl. BTW)') + '</span><span class="value">' + formatEuro(rate) + '/kWh</span></div>' +
+        '<div class="receipt-row"><span class="label">' + (I18N.receipt_location || 'Location') + '</span><span class="value">' + cpName + '</span></div>' +
+        '<div class="receipt-row"><span class="label">' + (I18N.receipt_port || 'Connector') + '</span><span class="value">Port ' + (session.connector_id || '—') + '</span></div>' +
+        '<div class="receipt-row"><span class="label">' + (I18N.receipt_duration || 'Duration') + '</span><span class="value">' + durationStr + '</span></div>' +
+        '<div class="receipt-row"><span class="label">' + (I18N.receipt_energy || 'Energy delivered') + '</span><span class="value">' + kwh.toFixed(3) + ' kWh</span></div>' +
+        '<div class="receipt-row"><span class="label">' + (I18N.receipt_rate || 'Rate (excl. VAT)') + '</span><span class="value">' + formatEuro(rate) + '/kWh</span></div>' +
         '<div class="divider"></div>' +
-        '<div class="receipt-row"><span class="label">' + (I18N.receipt_subtotal || 'Subtotaal') + '</span><span class="value">' + formatEuro(subtotal) + '</span></div>' +
-        '<div class="receipt-row"><span class="label">' + (I18N.receipt_vat || 'BTW (21%)') + '</span><span class="value">' + formatEuro(vat) + '</span></div>' +
-        '<div class="receipt-row total"><span>' + (I18N.receipt_total || 'Totaal betaald') + '</span><span>' + formatEuro(total) + '</span></div>' +
+        '<div class="receipt-row"><span class="label">' + (I18N.receipt_subtotal || 'Subtotal') + '</span><span class="value">' + formatEuro(subtotal) + '</span></div>' +
+        '<div class="receipt-row"><span class="label">' + (I18N.receipt_vat || 'VAT (21%)') + '</span><span class="value">' + formatEuro(vat) + '</span></div>' +
+        '<div class="receipt-row total"><span>' + (I18N.receipt_total || 'Total paid') + '</span><span>' + formatEuro(total) + '</span></div>' +
         '<div class="divider"></div>' +
-        '<div class="receipt-row"><span class="label">' + (I18N.receipt_method || 'Betaalmethode') + '</span><span class="value">' + (session.payment_method || 'Card') + '</span></div>' +
-        '<div class="receipt-row"><span class="label">' + (I18N.receipt_ref || 'Referentie') + '</span><span class="value" style="font-size:12px;">' + refStr + '</span></div>' +
+        '<div class="receipt-row"><span class="label">' + (I18N.receipt_method || 'Payment method') + '</span><span class="value">' + (session.payment_method || 'Card') + '</span></div>' +
+        '<div class="receipt-row"><span class="label">' + (I18N.receipt_ref || 'Reference') + '</span><span class="value" style="font-size:12px;">' + refStr + '</span></div>' +
       '</div>' +
       '<a href="/api/sessions/' + SESSION_ID + '/pdf" target="_blank" class="btn btn-pdf">' +
         '\ud83d\udcc4 ' + (I18N.download_pdf || 'Download PDF') +
       '</a>';
   } catch(e) {
     document.getElementById('receipt-content').innerHTML =
-      '<div class="error-card">' + (I18N.error || 'Fout') + ': ' + e.message + '</div>';
+      '<div class="error-card">' + (I18N.error || 'Error') + ': ' + e.message + '</div>';
   }
 }
 

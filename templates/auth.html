@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}{{ t.identify | default('Identificeer uzelf') }}{% endblock %}
+{% block title %}{{ t.identify | default('Identify yourself') }}{% endblock %}
 {% block content %}
 <div class="screen active">
   <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg,#0a1929);border-bottom:1px solid var(--border,#1e3a5f);position:sticky;top:0;z-index:800;">
     <a href="/" style="color:var(--text2,#94a3b8);text-decoration:none;font-size:20px;line-height:1;">←</a>
-    <a href="/" style="display:flex;align-items:center;text-decoration:none;"><img src="/static/logo.png" alt="" style="height:20px;" /></a>
+    <a href="/" style="display:flex;align-items:center;text-decoration:none;"><span style="font-size:16px;font-weight:600;color:#e8edf2;letter-spacing:-0.2px;">Open<span style="color:#4a6580;">CPO</span></span></a>
   </div>
 
   <div class="page-content">
@@ -12,11 +12,11 @@
     {# ── Phone step ── #}
     <div id="phone-step">
       <div style="margin-bottom:24px;">
-        <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;">{{ t.enter_phone | default('Voer uw telefoonnummer in') }}</h2>
-        <p class="text-muted">{{ t.phone_sms_desc | default('We sturen u een verificatiecode per SMS.') }}</p>
+        <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;">{{ t.enter_phone | default('Enter your phone number') }}</h2>
+        <p class="text-muted">{{ t.phone_sms_desc | default('We will send you a verification code by SMS.') }}</p>
       </div>
       <div class="form-group">
-        <label class="form-label" for="phone-input">{{ t.phone_label | default('Telefoonnummer') }}</label>
+        <label class="form-label" for="phone-input">{{ t.phone_label | default('Phone number') }}</label>
         <div style="display:flex;gap:0;">
           <select id="phone-prefix" style="
             background:var(--bg3,#132f4c);border:1px solid var(--border,#1e3a5f);
@@ -65,21 +65,21 @@
       </div>
       <div id="auth-error"></div>
       <button class="btn btn-primary" id="send-otp-btn" onclick="sendOtp()">
-        {{ t.send_code | default('Stuur code') }} →
+        {{ t.send_code | default('Send code') }} →
       </button>
       <div style="margin-top:24px;text-align:center;">
-        <a href="#" class="text-muted" style="font-size:13px;" onclick="showEmailForm(); return false;">{{ t.use_email | default('Gebruik e-mail') }}</a>
+        <a href="#" class="text-muted" style="font-size:13px;" onclick="showEmailForm(); return false;">{{ t.use_email | default('Use email') }}</a>
       </div>
     </div>
 
     {# ── OTP step ── #}
     <div id="otp-step" style="display:none;">
       <div style="margin-bottom:24px;">
-        <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;">{{ t.verification_code | default('Verificatiecode') }}</h2>
-        <p class="text-muted" id="otp-sent-msg">{{ t.code_sent | default('Code verzonden.') }}</p>
+        <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;">{{ t.verification_code | default('Verification code') }}</h2>
+        <p class="text-muted" id="otp-sent-msg">{{ t.code_sent | default('Code sent.') }}</p>
       </div>
       <div class="form-group">
-        <label class="form-label" for="otp-input">{{ t.code_label | default('6-cijferige code') }}</label>
+        <label class="form-label" for="otp-input">{{ t.code_label | default('6-digit code') }}</label>
         <input class="form-input" id="otp-input" type="tel"
                inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
                placeholder="_ _ _ _ _ _" autocomplete="one-time-code"
@@ -87,11 +87,11 @@
       </div>
       <div id="otp-error"></div>
       <button class="btn btn-primary" id="verify-otp-btn" onclick="verifyOtp()">
-        {{ t.verify | default('Bevestigen') }} →
+        {{ t.verify | default('Confirm') }} →
       </button>
       <div style="margin-top:16px;text-align:center;">
         <button class="btn btn-ghost" id="resend-btn" style="font-size:13px;" onclick="resendOtp()" disabled>
-          {{ t.resend | default('Stuur opnieuw') }} <span id="resend-countdown">(30s)</span>
+          {{ t.resend | default('Resend') }} <span id="resend-countdown">(30s)</span>
         </button>
       </div>
     </div>
@@ -99,45 +99,45 @@
     {# ── Email receipt step (after OTP verified) ── #}
     <div id="email-receipt-step" style="display:none;">
       <div style="margin-bottom:24px;">
-        <h2 style="font-size:20px;font-weight:700;margin-bottom:8px;">{{ t.receipt_by_email | default('Bon per e-mail?') }}</h2>
-        <p class="text-muted">{{ t.receipt_email_desc | default('Optioneel — vul in om uw bon per e-mail te ontvangen.') }}</p>
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:8px;">{{ t.receipt_by_email | default('Receipt by email?') }}</h2>
+        <p class="text-muted">{{ t.receipt_email_desc | default('Optional — enter your email to receive a receipt.') }}</p>
       </div>
       <div class="form-group">
-        <label class="form-label" for="email-receipt-input">{{ t.email_label | default('E-mailadres') }} <span style="color:var(--text3);font-weight:400;">{{ t.email_optional | default('(optioneel)') }}</span></label>
+        <label class="form-label" for="email-receipt-input">{{ t.email_label | default('Email address') }} <span style="color:var(--text3);font-weight:400;">{{ t.email_optional | default('(optional)') }}</span></label>
         <input class="form-input" id="email-receipt-input" type="email"
                inputmode="email" placeholder="naam@voorbeeld.nl" autocomplete="email" />
       </div>
       <div id="email-receipt-error"></div>
       <button class="btn btn-primary" onclick="submitPhoneWithEmail()">
-        {{ t.continue_to_payment | default('Doorgaan naar betaling') }} →
+        {{ t.continue_to_payment | default('Continue to payment') }} →
       </button>
       <button class="btn btn-ghost" style="margin-top:12px;width:100%;" onclick="submitPhoneWithEmail(true)">
-        {{ t.skip | default('Overslaan') }}
+        {{ t.skip | default('Skip') }}
       </button>
     </div>
 
     {# ── Email-only step ── #}
     <div id="email-step" style="display:none;">
       <div style="margin-bottom:24px;">
-        <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;">{{ t.enter_email | default('Voer uw e-mailadres in') }}</h2>
-        <p class="text-muted">{{ t.email_receipt_desc | default('We sturen uw bonnetje hier naartoe.') }}</p>
+        <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;">{{ t.enter_email | default('Enter your email address') }}</h2>
+        <p class="text-muted">{{ t.email_receipt_desc | default('We will send your receipt here.') }}</p>
       </div>
       <div class="form-group">
-        <label class="form-label" for="email-input">{{ t.email_label | default('E-mailadres') }}</label>
+        <label class="form-label" for="email-input">{{ t.email_label | default('Email address') }}</label>
         <input class="form-input" id="email-input" type="email"
                placeholder="u@example.com" autocomplete="email" inputmode="email"
                style="font-size:18px;padding:14px 16px;" />
       </div>
       <div id="email-error"></div>
       <button class="btn btn-primary" id="email-continue-btn" onclick="submitEmail()">
-        {{ t.continue_to_payment | default('Doorgaan naar betaling') }} →
+        {{ t.continue_to_payment | default('Continue to payment') }} →
       </button>
       <div style="margin-top:16px;text-align:center;">
-        <a href="#" class="text-muted" style="font-size:13px;" onclick="showPhoneForm(); return false;">{{ t.use_phone | default('← Gebruik telefoonnummer') }}</a>
+        <a href="#" class="text-muted" style="font-size:13px;" onclick="showPhoneForm(); return false;">{{ t.use_phone | default('← Use phone number') }}</a>
       </div>
     </div>
 
-    <button class="btn btn-ghost mt-8" onclick="history.back()">← {{ t.back | default('Terug') }}</button>
+    <button class="btn btn-ghost mt-8" onclick="history.back()">← {{ t.back | default('Back') }}</button>
   </div>
 
   <div class="app-footer">
@@ -241,11 +241,11 @@ async function sendOtp() {
   var errEl = document.getElementById('auth-error');
   var btn = document.getElementById('send-otp-btn');
   if (!phone || phone.length < 10) {
-    errEl.innerHTML = '<div class="error-card">' + (I18N.err_invalid_phone || 'Voer een geldig telefoonnummer in.') + '</div>';
+    errEl.innerHTML = '<div class="error-card">' + (I18N.err_invalid_phone || 'Please enter a valid phone number.') + '</div>';
     return;
   }
   btn.disabled = true;
-  btn.textContent = (I18N.resending || 'Versturen\u2026');
+  btn.textContent = (I18N.resending || 'Sending\u2026');
   errEl.innerHTML = '';
   // Store cp_id and connector in sessionStorage before OTP flow starts
   // This ensures the correct connector survives any page reloads or payment redirects
@@ -259,22 +259,22 @@ async function sendOtp() {
     });
     var data = await r.json();
     if (!r.ok || data.error) {
-      errEl.innerHTML = '<div class="error-card">' + (data.error || data.detail || (I18N.error || 'Fout')) + '</div>';
+      errEl.innerHTML = '<div class="error-card">' + (data.error || data.detail || (I18N.error || 'Error')) + '</div>';
       btn.disabled = false;
-      btn.textContent = (I18N.send_code || 'Stuur code') + ' \u2192';
+      btn.textContent = (I18N.send_code || 'Send code') + ' \u2192';
       return;
     }
     _otpPhone = data.phone || phone;
     document.getElementById('phone-step').style.display = 'none';
     document.getElementById('otp-step').style.display = '';
     document.getElementById('otp-sent-msg').textContent =
-      (I18N.code_sent_to || 'Code verzonden naar') + ' ' + _otpPhone;
+      (I18N.code_sent_to || 'Code sent to') + ' ' + _otpPhone;
     document.getElementById('otp-input').focus();
     startResendCountdown();
   } catch (e) {
-    errEl.innerHTML = '<div class="error-card">' + (I18N.err_connection || 'Verbindingsfout. Probeer opnieuw.') + '</div>';
+    errEl.innerHTML = '<div class="error-card">' + (I18N.err_connection || 'Connection error. Please try again.') + '</div>';
     btn.disabled = false;
-    btn.textContent = (I18N.send_code || 'Stuur code') + ' \u2192';
+    btn.textContent = (I18N.send_code || 'Send code') + ' \u2192';
   }
 }
 
@@ -290,11 +290,11 @@ async function resendOtp() {
       body: JSON.stringify({phone: phone})
     });
     document.getElementById('otp-sent-msg').textContent =
-      (I18N.code_resent_to || 'Code opnieuw verzonden naar') + ' ' + phone;
+      (I18N.code_resent_to || 'Code resent to') + ' ' + phone;
     startResendCountdown();
   } catch(e) {
     document.getElementById('otp-error').innerHTML =
-      '<div class="error-card">' + (I18N.err_resend || 'Fout bij opnieuw verzenden.') + '</div>';
+      '<div class="error-card">' + (I18N.err_resend || 'Error resending code.') + '</div>';
     btn.disabled = false;
   }
 }
@@ -304,11 +304,11 @@ async function verifyOtp() {
   var errEl = document.getElementById('otp-error');
   var btn = document.getElementById('verify-otp-btn');
   if (code.length < 6) {
-    errEl.innerHTML = '<div class="error-card">' + (I18N.err_incomplete_code || 'Voer de volledige 6-cijferige code in.') + '</div>';
+    errEl.innerHTML = '<div class="error-card">' + (I18N.err_incomplete_code || 'Please enter the full 6-digit code.') + '</div>';
     return;
   }
   btn.disabled = true;
-  btn.textContent = (I18N.confirming || 'Bevestigen\u2026');
+  btn.textContent = (I18N.confirming || 'Confirming\u2026');
   errEl.innerHTML = '';
   try {
     var r = await fetch('/api/auth/verify-otp', {
@@ -318,9 +318,9 @@ async function verifyOtp() {
     });
     var data = await r.json();
     if (!r.ok || data.error) {
-      errEl.innerHTML = '<div class="error-card">' + (data.error || data.detail || (I18N.err_invalid_code || 'Ongeldige code')) + '</div>';
+      errEl.innerHTML = '<div class="error-card">' + (data.error || data.detail || (I18N.err_invalid_code || 'Invalid code')) + '</div>';
       btn.disabled = false;
-      btn.textContent = (I18N.verify || 'Bevestigen') + ' \u2192';
+      btn.textContent = (I18N.verify || 'Confirm') + ' \u2192';
       return;
     }
     _driverToken = data.token;
@@ -330,9 +330,9 @@ async function verifyOtp() {
     document.getElementById('email-receipt-step').style.display = '';
     document.getElementById('email-receipt-input').focus();
   } catch(e) {
-    errEl.innerHTML = '<div class="error-card">' + (I18N.err_connection || 'Verbindingsfout. Probeer opnieuw.') + '</div>';
+    errEl.innerHTML = '<div class="error-card">' + (I18N.err_connection || 'Connection error. Please try again.') + '</div>';
     btn.disabled = false;
-    btn.textContent = (I18N.verify || 'Bevestigen') + ' \u2192';
+    btn.textContent = (I18N.verify || 'Confirm') + ' \u2192';
   }
 }
 
@@ -363,7 +363,7 @@ async function submitPhoneWithEmail(skip) {
     });
     var data = await r.json();
     if (!r.ok || data.error) {
-      errEl.innerHTML = '<div class="error-card">' + (data.error || data.detail || (I18N.err_session || 'Fout bij aanmaken sessie')) + '</div>';
+      errEl.innerHTML = '<div class="error-card">' + (data.error || data.detail || (I18N.err_session || 'Error creating session')) + '</div>';
       _submitPending = false;
       if (continueBtn) { continueBtn.disabled = false; }
       if (skipBtn) { skipBtn.disabled = false; }
@@ -375,7 +375,7 @@ async function submitPhoneWithEmail(skip) {
     sessionStorage.removeItem('auth_connector');
     window.location.href = data.checkout_url;
   } catch(e) {
-    errEl.innerHTML = '<div class="error-card">' + (I18N.err_connection || 'Verbindingsfout. Probeer opnieuw.') + '</div>';
+    errEl.innerHTML = '<div class="error-card">' + (I18N.err_connection || 'Connection error. Please try again.') + '</div>';
     _submitPending = false;
     if (continueBtn) { continueBtn.disabled = false; }
     if (skipBtn) { skipBtn.disabled = false; }
@@ -387,11 +387,11 @@ async function submitEmail() {
   var errEl = document.getElementById('email-error');
   var btn = document.getElementById('email-continue-btn');
   if (!email || !email.includes('@')) {
-    errEl.innerHTML = '<div class="error-card">' + (I18N.err_invalid_email || 'Voer een geldig e-mailadres in.') + '</div>';
+    errEl.innerHTML = '<div class="error-card">' + (I18N.err_invalid_email || 'Please enter a valid email address.') + '</div>';
     return;
   }
   btn.disabled = true;
-  btn.textContent = (I18N.creating_session || 'Sessie aanmaken\u2026');
+  btn.textContent = (I18N.creating_session || 'Creating session\u2026');
   errEl.innerHTML = '';
   try {
     var r = await fetch('/api/sessions/create', {
@@ -406,17 +406,17 @@ async function submitEmail() {
     });
     var data = await r.json();
     if (!r.ok || data.error) {
-      errEl.innerHTML = '<div class="error-card">' + (data.error || data.detail || (I18N.err_session || 'Fout bij aanmaken sessie')) + '</div>';
+      errEl.innerHTML = '<div class="error-card">' + (data.error || data.detail || (I18N.err_session || 'Error creating session')) + '</div>';
       btn.disabled = false;
-      btn.textContent = (I18N.continue_to_payment || 'Doorgaan naar betaling') + ' \u2192';
+      btn.textContent = (I18N.continue_to_payment || 'Continue to payment') + ' \u2192';
       return;
     }
     localStorage.setItem('active_session_id', data.session_id);
     window.location.href = data.checkout_url;
   } catch(e) {
-    errEl.innerHTML = '<div class="error-card">' + (I18N.err_connection || 'Verbindingsfout. Probeer opnieuw.') + '</div>';
+    errEl.innerHTML = '<div class="error-card">' + (I18N.err_connection || 'Connection error. Please try again.') + '</div>';
     btn.disabled = false;
-    btn.textContent = (I18N.continue_to_payment || 'Doorgaan naar betaling') + ' \u2192';
+    btn.textContent = (I18N.continue_to_payment || 'Continue to payment') + ' \u2192';
   }
 }
 </script>
