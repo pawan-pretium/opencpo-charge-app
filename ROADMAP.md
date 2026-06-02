@@ -70,11 +70,11 @@ opencpo-charge-app/             (open-sourceable base)
 │   ├── account/                Optional login system
 │   └── push/                   Push notifications
 └── skins/
-    └── stroomlijnen/           Example branded skin (CSS/animations)
+    └── skins/                  Per-operator branded skins (CSS/animations)
 ```
 
 Open-source base: functional, clean UX, no branding
-Stroomlijnen skin: example branded skin with custom CSS and animations
+Each operator: their own skin, same engine
 Other operators: their own skin, same engine
 
 ## User Identity Model

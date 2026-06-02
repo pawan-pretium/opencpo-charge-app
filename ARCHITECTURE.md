@@ -67,7 +67,7 @@ opencpo-charge-app/
 │   ├── home.js                Map + discovery JS
 │   └── session.js             Live session JS
 ├── skins/                     Skin overrides
-│   └── stroomlijnen/          Example branded skin
+│   └── default/               Built-in default skin
 │       ├── skin.json          Metadata: name, colors, fonts
 │       ├── static/
 │       │   └── style.css      Full CSS override
@@ -264,7 +264,7 @@ This is a hard constraint from the architecture doc. Enforcement:
 ## 10. Build Plan
 
 ### Step 0: Restructure
-Refactor current flat `main.py` into the directory structure above. Move existing routes to `routes/`. Move current CSS to `skins/stroomlijnen/static/`. No new features — just restructure.
+Refactor current flat `main.py` into the directory structure above. Move existing routes to `routes/`. Move current CSS to `skins/default/static/`. No new features — just restructure.
 
 ### Step 1: Feature Flag System
 - Core API: `ocpp.feature_flags` table + API endpoints
@@ -273,7 +273,7 @@ Refactor current flat `main.py` into the directory structure above. Move existin
 
 ### Step 2: PDF Receipts (mandatory)
 - Plugin: `plugins/receipts/generator.py`
-- VAT-compliant PDF with session data, tariff, Stroomlijnen B.V. details
+- VAT-compliant PDF with session data, tariff, operator company details
 - Core API endpoint for PDF generation
 - Auto-generate on session completion
 

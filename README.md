@@ -48,7 +48,7 @@ skins/my-brand/
 
 Set `SKIN=my-brand` in your `.env` to activate it.
 
-The `skins/stroomlijnen/` folder is included as a real-world example skin.  
+Built-in skins are included under `skins/` — each demonstrates different branding approaches for your operators.  
 The `skins/default/` folder is the generic built-in skin — clean, neutral, no branding.
 
 ### Plugin System

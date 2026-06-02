@@ -6,7 +6,7 @@ Community-contributed skins for the OpenCPO charge app. Each skin is a complete 
 
 | Skin | Mode | Primary | Vibe | Preview |
 |------|------|---------|------|---------|
-| **stroomlijnen** | Dark | Cyan `#00B0E4` | Theater tech, premium dark | [Built-in] |
+| **voltage-backstage** | Dark | Ice Blue `#6FD2FF` | Stage lighting, atmospheric | [Built-in] |
 | **voltage-backstage** | Dark | Ice Blue `#6FD2FF` | Stage lighting, atmospheric | [6 screens] |
 | **stroom-electron** | Dark | Lime Green `#9EDA2D` | Editorial lifestyle, electric | [12 screens] |
 | **ion-flux** | Dark | Neon Cyan `#81ECFF` | Obsidian HUD, carbon fiber | [8 screens] |
