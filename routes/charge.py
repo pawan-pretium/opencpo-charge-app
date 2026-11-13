@@ -56,7 +56,7 @@ async def charge_screen(request: Request, cp_id: str, connector: str):
 
     rate_value = None
     rate_label = "Fixed rate"
-    preauth_amount = "€25"
+    preauth_amount = "£5"
     tariff_kwh_raw = 0.0
     charger_power_kw = 0.0
     address = ""
@@ -76,9 +76,8 @@ async def charge_screen(request: Request, cp_id: str, connector: str):
         tier_rate = tier_data.get("rate_incl")
         if tier_rate:
             tariff_kwh_raw = float(tier_rate)
-            rate_value = f"€ {tariff_kwh_raw:.4f}/kWh".replace(".", ",")
-            tier_name = tier_data.get("name", pricing_tier)
-            rate_label = f"{tier_name} rate" if pricing_tier != "public" else "Rate"
+            rate_value = f"£{tariff_kwh_raw:.2f}"
+            rate_label = "per kWh"
     except Exception:
         pass
 
@@ -88,7 +87,8 @@ async def charge_screen(request: Request, cp_id: str, connector: str):
             tariff = charger_data.get("tariff_kwh")
             if tariff:
                 tariff_kwh_raw = float(tariff)
-                rate_value = f"€ {tariff_kwh_raw:.4f}/kWh".replace(".", ",")
+                rate_value = f"£{tariff_kwh_raw:.2f}"
+                rate_label = "per kWh"
 
         power = charger_data.get("max_power_kw") or charger_data.get("power_kw") or 0
         charger_power_kw = float(power)

@@ -61,7 +61,7 @@ var map, userMarker, chargerLayer, tileLayer;
 var chargerCache = { data: null, ts: 0 };
 var CACHE_TTL = 30000;
 var fetchDebounce = null;
-var isDark = true;
+var isDark = !window.PRETIUM_LIGHT_MAP;
 
 var TILE_DARK  = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 var TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
@@ -75,7 +75,7 @@ function initMap() {
     attributionControl: true,
   });
 
-  tileLayer = L.tileLayer(TILE_DARK, { attribution: TILE_ATTR, maxZoom: 19 });
+  tileLayer = L.tileLayer(isDark ? TILE_DARK : TILE_LIGHT, { attribution: TILE_ATTR, maxZoom: 19 });
   tileLayer.addTo(map);
   chargerLayer = L.layerGroup().addTo(map);
 
@@ -85,7 +85,10 @@ function initMap() {
 
   document.getElementById('zoom-in').addEventListener('click', function () { map.zoomIn(); });
   document.getElementById('zoom-out').addEventListener('click', function () { map.zoomOut(); });
-  document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+  var themeBtn = document.getElementById('theme-toggle');
+  if (themeBtn && !themeBtn.hidden && !window.PRETIUM_LIGHT_MAP) {
+    themeBtn.addEventListener('click', toggleTheme);
+  }
   document.getElementById('geo-btn').addEventListener('click', locateUser);
   document.getElementById('locate-banner-btn').addEventListener('click', locateUser);
   document.getElementById('sheet-handle').addEventListener('click', closeSheet);

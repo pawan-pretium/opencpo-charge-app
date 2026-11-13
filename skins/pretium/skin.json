@@ -1,0 +1,20 @@
+{
+  "name": "Pretium",
+  "version": "1.0",
+  "mode": "light",
+  "colors": {
+    "primary": "#204020",
+    "secondary": "#1a1a1a",
+    "background": "#ffffff",
+    "card": "#ffffff",
+    "border": "rgba(26, 26, 26, 0.12)"
+  },
+  "fonts": {
+    "headline": "Open Sans",
+    "body": "Open Sans",
+    "label": "Open Sans",
+    "mono": "Open Sans"
+  },
+  "logo": "pretium-logo.webp",
+  "favicon": "pretium-logo.webp"
+}
