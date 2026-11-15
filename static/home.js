@@ -64,8 +64,14 @@ var fetchDebounce = null;
 var isDark = !window.PRETIUM_LIGHT_MAP;
 
 var TILE_DARK  = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-var TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+var TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 var TILE_ATTR  = '&copy; <a href="https://stadiamaps.com/">CARTO</a> &copy; <a href="https://openstreetmap.org">OSM</a>';
+
+function cartoTile(url) {
+  var key = window.CARTO_BASEMAP_KEY || '';
+  if (!key) return url;
+  return url + (url.indexOf('?') === -1 ? '?' : '&') + 'key=' + encodeURIComponent(key);
+}
 
 function initMap() {
   map = L.map('charger-map', {
@@ -75,7 +81,7 @@ function initMap() {
     attributionControl: true,
   });
 
-  tileLayer = L.tileLayer(isDark ? TILE_DARK : TILE_LIGHT, { attribution: TILE_ATTR, maxZoom: 19 });
+  tileLayer = L.tileLayer(cartoTile(isDark ? TILE_DARK : TILE_LIGHT), { attribution: TILE_ATTR, maxZoom: 19 });
   tileLayer.addTo(map);
   chargerLayer = L.layerGroup().addTo(map);
 
@@ -100,7 +106,7 @@ function initMap() {
 
 function toggleTheme() {
   isDark = !isDark;
-  tileLayer.setUrl(isDark ? TILE_DARK : TILE_LIGHT);
+  tileLayer.setUrl(cartoTile(isDark ? TILE_DARK : TILE_LIGHT));
 }
 
 function scheduleFetch() {

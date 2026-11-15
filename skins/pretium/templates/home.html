@@ -159,6 +159,6 @@
 
 </div>
 
-<script>window.PRETIUM_LIGHT_MAP = true;</script>
-<script src="/static/home.js"></script>
+<script>window.PRETIUM_LIGHT_MAP = true; window.CARTO_BASEMAP_KEY = {{ carto_basemap_key | tojson }};</script>
+<script src="/static/home.js?v=4"></script>
 {% endblock %}

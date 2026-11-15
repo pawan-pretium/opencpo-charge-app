@@ -53,6 +53,7 @@ def uk_phone(raw) -> str:
 
 templates.env.filters["uk_phone"] = uk_phone
 templates.env.globals["app_title"] = config.APP_TITLE
+templates.env.globals["carto_basemap_key"] = config.CARTO_BASEMAP_KEY
 app.state.templates = templates
 
 # ── Routes ────────────────────────────────────────────────────────────────
@@ -66,6 +67,14 @@ for plugin_router in discover_plugins(config.PLUGINS):
     app.include_router(plugin_router)
 
 # ── Middleware ────────────────────────────────────────────────────────────
+@app.middleware("http")
+async def refresh_map_assets(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path in {"/", "/static/home.js", "/static/sw.js"}:
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 app.middleware("http")(inject_context)
 
 if __name__ == "__main__":
