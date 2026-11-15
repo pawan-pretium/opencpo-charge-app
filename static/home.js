@@ -5,7 +5,8 @@
   fetch('/api/sessions/' + sid + '/poll')
     .then(function (r) { return r.json(); })
     .then(function (s) {
-      if (s && (s.mollie_status === 'paid' || s.mollie_status === 'authorized') && !s.stopped_at) {
+      var pay = s && (s.payment_status || s.mollie_status);
+      if (s && (pay === 'paid' || pay === 'authorized') && !s.stopped_at) {
         window.location.href = '/session/' + sid;
       } else {
         localStorage.removeItem('active_session_id');
