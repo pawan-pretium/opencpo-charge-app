@@ -1,6 +1,6 @@
 {
   "nl": {
-    "app_name": "OCPP Laden",
+    "app_name": "Pretium CPO",
     "find_charger": "Vind een laadpunt",
     "scan_qr": "Scan QR-code",
     "charger": "Lader",
@@ -195,7 +195,7 @@
     "charge_ready": "✓ Klaar →"
   },
   "en": {
-    "app_name": "OCPP Charging",
+    "app_name": "Pretium CPO",
     "find_charger": "Find a charger",
     "scan_qr": "Scan QR code",
     "charger": "Charger",

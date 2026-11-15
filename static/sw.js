@@ -1,5 +1,5 @@
-const CACHE = 'opencpo-charge-v2';
-const PRECACHE = ['/', '/skin/style.css', '/static/home.js', '/static/favicon.svg', '/static/manifest.json'];
+const CACHE = 'opencpo-charge-v7';
+const PRECACHE = ['/', '/skin/style.css?v=3', '/static/home.js?v=4', '/static/favicon.svg', '/static/manifest.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)));

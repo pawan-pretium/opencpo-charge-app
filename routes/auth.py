@@ -58,3 +58,28 @@ async def verify_otp(request: Request):
         return JSONResponse(result)
     except HTTPException as e:
         return JSONResponse({"error": e.detail}, status_code=e.status_code)
+
+
+@router.post("/api/auth/send-email-otp")
+async def send_email_otp(request: Request):
+    """Ask the core to email a verification code."""
+    body = await request.json()
+    try:
+        result = await api_post("/api/v1/public/auth/send-email-otp", {"email": body.get("email")})
+        return JSONResponse(result)
+    except HTTPException as e:
+        return JSONResponse({"error": e.detail}, status_code=e.status_code)
+
+
+@router.post("/api/auth/verify-email-otp")
+async def verify_email_otp(request: Request):
+    """Check an emailed verification code."""
+    body = await request.json()
+    try:
+        result = await api_post("/api/v1/public/auth/verify-email-otp", {
+            "email": body.get("email"),
+            "code": body.get("code"),
+        })
+        return JSONResponse(result)
+    except HTTPException as e:
+        return JSONResponse({"error": e.detail}, status_code=e.status_code)

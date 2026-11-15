@@ -121,17 +121,17 @@
     <div id="email-step" style="display:none;">
       <div style="margin-bottom:24px;">
         <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;">{{ t.enter_email | default('Enter your email address') }}</h2>
-        <p class="text-muted">{{ t.email_receipt_desc | default('We will send your receipt here.') }}</p>
+        <p class="text-muted">{{ t.email_code_desc | default('We will send a verification code to this address.') }}</p>
       </div>
       <div class="form-group">
         <label class="form-label" for="email-input">{{ t.email_label | default('Email address') }}</label>
         <input class="form-input" id="email-input" type="email"
-               placeholder="u@example.com" autocomplete="email" inputmode="email"
+               placeholder="name@example.com" autocomplete="email" inputmode="email"
                style="font-size:18px;padding:14px 16px;" />
       </div>
       <div id="email-error"></div>
-      <button class="btn btn-primary" id="email-continue-btn" onclick="submitEmail()">
-        {{ t.continue_to_payment | default('Continue to payment') }} →
+      <button class="btn btn-primary" id="email-continue-btn" onclick="sendEmailOtp()">
+        {{ t.send_code | default('Send code') }} →
       </button>
       <div style="margin-top:16px;text-align:center;">
         <a href="#" class="text-muted" style="font-size:13px;" onclick="showPhoneForm(); return false;">{{ t.use_phone | default('← Use phone number') }}</a>
@@ -151,6 +151,7 @@ var CP_ID = {{ cp_id | tojson }};
 var CONNECTOR = {{ connector | tojson }};
 var I18N = {{ t | tojson if t is defined else '{}' }};
 var _otpPhone = '';
+var _otpChannel = 'phone';
 var _resendTimer = null;
 var _driverToken = null;
 var _submitPending = false;
@@ -248,6 +249,7 @@ async function sendOtp() {
   btn.disabled = true;
   btn.textContent = (I18N.resending || 'Sending\u2026');
   errEl.innerHTML = '';
+  _otpChannel = 'phone';
   // Store cp_id and connector in sessionStorage before OTP flow starts
   // This ensures the correct connector survives any page reloads or payment redirects
   sessionStorage.setItem('auth_cp_id', String(CP_ID));
@@ -280,18 +282,27 @@ async function sendOtp() {
 }
 
 async function resendOtp() {
-  var phone = _otpPhone || document.getElementById('phone-input').value.trim();
-  if (!phone) return;
+  var target = _otpPhone;
+  if (!target) return;
   var btn = document.getElementById('resend-btn');
   btn.disabled = true;
+  var url = _otpChannel === 'email' ? '/api/auth/send-email-otp' : '/api/auth/send-otp';
+  var payload = _otpChannel === 'email' ? {email: target} : {phone: target};
   try {
-    var r = await fetch('/api/auth/send-otp', {
+    var r = await fetch(url, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({phone: phone})
+      body: JSON.stringify(payload)
     });
+    var data = await r.json();
+    if (!r.ok || data.error) {
+      document.getElementById('otp-error').innerHTML =
+        '<div class="error-card">' + (data.error || data.detail || (I18N.err_resend || 'Error resending code.')) + '</div>';
+      btn.disabled = false;
+      return;
+    }
     document.getElementById('otp-sent-msg').textContent =
-      (I18N.code_resent_to || 'Code resent to') + ' ' + phone;
+      (I18N.code_resent_to || 'Code resent to') + ' ' + target;
     startResendCountdown();
   } catch(e) {
     document.getElementById('otp-error').innerHTML =
@@ -311,11 +322,15 @@ async function verifyOtp() {
   btn.disabled = true;
   btn.textContent = (I18N.confirming || 'Confirming\u2026');
   errEl.innerHTML = '';
+  var url = _otpChannel === 'email' ? '/api/auth/verify-email-otp' : '/api/auth/verify-otp';
+  var payload = _otpChannel === 'email'
+    ? {email: _otpPhone, code: code}
+    : {phone: _otpPhone, code: code};
   try {
-    var r = await fetch('/api/auth/verify-otp', {
+    var r = await fetch(url, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({phone: _otpPhone, code: code})
+      body: JSON.stringify(payload)
     });
     var data = await r.json();
     if (!r.ok || data.error) {
@@ -326,10 +341,18 @@ async function verifyOtp() {
     }
     _driverToken = data.token;
     localStorage.setItem('driver_token', data.token);
+    if (_otpChannel === 'email') {
+      localStorage.setItem('driver_email', data.email || _otpPhone);
+      localStorage.removeItem('driver_phone');
+      goToPayment(null, data.email || _otpPhone, errEl, [btn]);
+      return;
+    }
     localStorage.setItem('driver_phone', data.phone || _otpPhone);
     document.getElementById('otp-step').style.display = 'none';
     document.getElementById('email-receipt-step').style.display = '';
     document.getElementById('email-receipt-input').focus();
+    btn.disabled = false;
+    btn.textContent = (I18N.verify || 'Confirm') + ' \u2192';
   } catch(e) {
     errEl.innerHTML = '<div class="error-card">' + (I18N.err_connection || 'Connection error. Please try again.') + '</div>';
     btn.disabled = false;
@@ -383,7 +406,7 @@ async function submitPhoneWithEmail(skip) {
   }
 }
 
-async function submitEmail() {
+async function sendEmailOtp() {
   var email = document.getElementById('email-input').value.trim();
   var errEl = document.getElementById('email-error');
   var btn = document.getElementById('email-continue-btn');
@@ -392,32 +415,71 @@ async function submitEmail() {
     return;
   }
   btn.disabled = true;
-  btn.textContent = (I18N.creating_session || 'Creating session\u2026');
+  btn.textContent = (I18N.resending || 'Sending\u2026');
   errEl.innerHTML = '';
+  _otpChannel = 'email';
+  sessionStorage.setItem('auth_cp_id', String(CP_ID));
+  sessionStorage.setItem('auth_connector', String(CONNECTOR));
+  try {
+    var r = await fetch('/api/auth/send-email-otp', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email: email})
+    });
+    var data = await r.json();
+    if (!r.ok || data.error) {
+      errEl.innerHTML = '<div class="error-card">' + (data.error || data.detail || (I18N.error || 'Error')) + '</div>';
+      btn.disabled = false;
+      btn.textContent = (I18N.send_code || 'Send code') + ' \u2192';
+      return;
+    }
+    _otpPhone = data.email || email;
+    document.getElementById('email-step').style.display = 'none';
+    document.getElementById('otp-step').style.display = '';
+    document.getElementById('otp-sent-msg').textContent =
+      (I18N.code_sent_to || 'Code sent to') + ' ' + _otpPhone;
+    document.getElementById('otp-input').value = '';
+    document.getElementById('otp-input').focus();
+    startResendCountdown();
+  } catch (e) {
+    errEl.innerHTML = '<div class="error-card">' + (I18N.err_connection || 'Connection error. Please try again.') + '</div>';
+    btn.disabled = false;
+    btn.textContent = (I18N.send_code || 'Send code') + ' \u2192';
+  }
+}
+
+async function goToPayment(phone, email, errEl, buttons) {
+  if (_submitPending) return;
+  _submitPending = true;
+  buttons.forEach(function(b) { if (b) b.disabled = true; });
+  var connectorToUse = parseInt(sessionStorage.getItem('auth_connector') || CONNECTOR, 10);
   try {
     var r = await fetch('/api/sessions/create', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
         cp_id: CP_ID,
-        connector_id: parseInt(sessionStorage.getItem('auth_connector') || CONNECTOR, 10),
-        driver_email: email,
-        driver_phone: null
+        connector_id: connectorToUse,
+        driver_phone: phone,
+        driver_email: email
       })
     });
     var data = await r.json();
     if (!r.ok || data.error) {
       errEl.innerHTML = '<div class="error-card">' + (data.error || data.detail || (I18N.err_session || 'Error creating session')) + '</div>';
-      btn.disabled = false;
-      btn.textContent = (I18N.continue_to_payment || 'Continue to payment') + ' \u2192';
+      _submitPending = false;
+      buttons.forEach(function(b) { if (b) b.disabled = false; });
       return;
     }
     localStorage.setItem('active_session_id', data.session_id);
+    localStorage.removeItem('driver_token');
+    sessionStorage.removeItem('auth_cp_id');
+    sessionStorage.removeItem('auth_connector');
     window.location.href = data.checkout_url;
-  } catch(e) {
+  } catch (e) {
     errEl.innerHTML = '<div class="error-card">' + (I18N.err_connection || 'Connection error. Please try again.') + '</div>';
-    btn.disabled = false;
-    btn.textContent = (I18N.continue_to_payment || 'Continue to payment') + ' \u2192';
+    _submitPending = false;
+    buttons.forEach(function(b) { if (b) b.disabled = false; });
   }
 }
 </script>

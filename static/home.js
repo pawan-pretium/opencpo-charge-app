@@ -75,8 +75,8 @@ function cartoTile(url) {
 
 function initMap() {
   map = L.map('charger-map', {
-    center: [52.3942, 4.8666],
-    zoom: 14,
+    center: [51.5087364, -0.1404392],
+    zoom: 15,
     zoomControl: false,
     attributionControl: true,
   });
@@ -96,6 +96,12 @@ function initMap() {
     themeBtn.addEventListener('click', toggleTheme);
   }
   document.getElementById('geo-btn').addEventListener('click', locateUser);
+  var mapBtn = document.getElementById('view-map');
+  var listBtn = document.getElementById('view-list');
+  if (mapBtn && listBtn) {
+    mapBtn.addEventListener('click', function () { setHomeView('map'); });
+    listBtn.addEventListener('click', function () { setHomeView('list'); });
+  }
   document.getElementById('locate-banner-btn').addEventListener('click', locateUser);
   document.getElementById('sheet-handle').addEventListener('click', closeSheet);
 
@@ -128,6 +134,7 @@ function fetchNearby() {
   var now = Date.now();
   if (chargerCache.data && (now - chargerCache.ts) < CACHE_TTL) {
     renderChargers(chargerCache.data);
+    renderList(chargerCache.data);
     return;
   }
 
@@ -143,6 +150,7 @@ function fetchNearby() {
     .then(function (data) {
       chargerCache = { data: data, ts: Date.now() };
       renderChargers(data);
+      renderList(data);
     })
     .catch(function (e) {
       console.error('Charger fetch failed:', e);
@@ -191,6 +199,40 @@ function renderChargers(data) {
   setTimeout(function () { badge.style.opacity = '0'; }, 5000);
 }
 
+function renderList(data) {
+  var el = document.getElementById('charger-list');
+  if (!el) return;
+  var chargers = chargerRows(data);
+  if (!chargers.length) {
+    el.innerHTML = '<p class="list-empty">No chargers in range.</p>';
+    return;
+  }
+  el.innerHTML = chargers.map(function (cp) {
+    var id = cp.id || cp.cp_id || '';
+    var addr = [cp.address, cp.city].filter(Boolean).join(', ');
+    var conn = (cp.connectors || [])[0] || {};
+    var cid = conn.id || conn.connector_id || 1;
+    var status = conn.status || cp.status || '';
+    var href = '/charge/' + encodeURIComponent(id) + '/' + encodeURIComponent(cid);
+    return '<a class="charger-list-card" href="' + href + '">' +
+      '<div class="charger-list-name">' + escapeHtml(cp.name || id) + '</div>' +
+      '<div class="charger-list-addr">' + escapeHtml(addr) + '</div>' +
+      '<div class="charger-list-meta">' + escapeHtml(status) + ' · £' + inclPrice(cp.tariff_kwh) + ' per kWh</div>' +
+      '</a>';
+  }).join('');
+}
+
+function setHomeView(mode) {
+  var list = document.getElementById('charger-list');
+  var mapBtn = document.getElementById('view-map');
+  var listBtn = document.getElementById('view-list');
+  if (!list) return;
+  list.classList.toggle('hidden', mode !== 'list');
+  if (mapBtn) mapBtn.classList.toggle('on', mode === 'map');
+  if (listBtn) listBtn.classList.toggle('on', mode === 'list');
+  if (mode === 'map' && map) setTimeout(function () { map.invalidateSize(); }, 50);
+}
+
 function locateUser() {
   if (!navigator.geolocation) {
     document.getElementById('locate-banner').classList.remove('hidden');
@@ -221,8 +263,8 @@ function locateUser() {
 }
 
 // ── Distance helper ─────────────────────────────────────────────
-function distTo(lat, lng) {
-  if (!userMarker) return null;
+function metresTo(lat, lng) {
+  if (!userMarker || lat == null || lng == null) return null;
   var u = userMarker.getLatLng();
   var R = 6371000;
   var dLat = (lat - u.lat) * Math.PI / 180;
@@ -230,15 +272,44 @@ function distTo(lat, lng) {
   var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(u.lat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) *
     Math.sin(dLng / 2) * Math.sin(dLng / 2);
-  var d = 2 * R * Math.asin(Math.sqrt(a));
-  return d < 1000 ? Math.round(d) + ' m' : (d / 1000).toFixed(1) + ' km';
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+function distanceLabel(metres) {
+  var I18N = window.I18N || {};
+  if (metres == null) return '';
+  if (metres < 20) return I18N.you_are_here || 'You are here';
+  var text = metres < 1000 ? Math.round(metres) + ' m' : (metres / 1000).toFixed(1) + ' km';
+  return text + ' ' + (I18N.distance_from_you || 'from you');
+}
+
+function navUrl(lat, lng) {
+  var apple = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  if (apple) return 'https://maps.apple.com/?daddr=' + lat + ',' + lng;
+  return 'https://www.google.com/maps/dir/?api=1&destination=' + lat + ',' + lng;
+}
+
+function inclPrice(exVat) {
+  var n = Number(exVat);
+  if (!isFinite(n) || n < 0) n = 0.5;
+  return (Math.round((n * 1.2) * 100) / 100).toFixed(2);
+}
+
+function escapeHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, function (ch) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+  });
+}
+
+function chargerRows(data) {
+  return Array.isArray(data) ? data : (data.chargers || data.results || []);
 }
 
 // ── Bottom Sheet ────────────────────────────────────────────────
 function openSheet(cp) {
   var lat = cp.lat || cp.latitude;
   var lng = cp.lng || cp.longitude;
-  var dist = distTo(lat, lng);
+  var dist = distanceLabel(metresTo(lat, lng));
   var connectors = cp.connectors || [];
   var cpId = cp.cp_id || cp.id || '';
 
@@ -282,15 +353,15 @@ function openSheet(cp) {
   if (addr === name) addr = '';
 
   var navBtn = (lat && lng)
-    ? '<a href="https://www.google.com/maps/dir/?api=1&destination=' + lat + ',' + lng +
+    ? '<a href="' + navUrl(lat, lng) +
       '" target="_blank" rel="noopener" class="sheet-btn sheet-btn-nav">🧭 ' +
-      (I18N.navigate || 'Navigeer') + '</a>'
+      (I18N.navigate || 'Navigate') + '</a>'
     : '';
 
   document.getElementById('sheet-content').innerHTML =
     '<div class="sheet-charger-name">' + name + '</div>' +
     (addr ? '<div class="sheet-charger-addr">📍 ' + addr + '</div>' : '') +
-    (dist ? '<div class="map-popup-dist">' + dist + ' ' + (I18N.distance_from_you || 'van jou') + '</div>' : '') +
+    (dist ? '<div class="map-popup-dist">' + dist + '</div>' : '') +
     '<div class="sheet-connector-list">' + connHTML + '</div>' +
     (navBtn ? '<div class="sheet-actions">' + navBtn + '</div>' : '');
 
