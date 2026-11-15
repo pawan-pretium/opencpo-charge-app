@@ -1,5 +1,8 @@
 """Charge screen: charger info, connector status, rate, start button."""
+import json
 import logging
+from decimal import Decimal, ROUND_HALF_UP
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
@@ -82,19 +85,35 @@ async def charge_screen(request: Request, cp_id: str, connector: str):
         pass
 
     if charger_data:
-        # Fallback: charger's flat tariff if dynamic pricing unavailable
+        meta = charger_data.get("metadata") or {}
+        if isinstance(meta, str):
+            try:
+                meta = json.loads(meta)
+            except json.JSONDecodeError:
+                meta = {}
+        if not isinstance(meta, dict):
+            meta = {}
+        # Fallback: the charger price is stored ex-VAT. The screen shows it with VAT.
         if rate_value is None:
             tariff = charger_data.get("tariff_kwh")
-            if tariff:
-                tariff_kwh_raw = float(tariff)
-                rate_value = f"£{tariff_kwh_raw:.2f}"
-                rate_label = "per kWh"
+            if tariff is None:
+                tariff = meta.get("tariff_kwh")
+            if tariff is None:
+                tariff = 0.50
+            ex_vat = Decimal(str(tariff))
+            incl = (ex_vat * Decimal("1.20")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            tariff_kwh_raw = float(ex_vat)
+            rate_value = f"£{incl:.2f}"
+            rate_label = "per kWh"
 
-        power = charger_data.get("max_power_kw") or charger_data.get("power_kw") or 0
-        charger_power_kw = float(power)
-        address = charger_data.get("address") or charger_data.get("location") or ""
-        lat = charger_data.get("lat") or charger_data.get("latitude")
-        lng = charger_data.get("lng") or charger_data.get("longitude")
+        power = charger_data.get("max_power_kw") or charger_data.get("power_kw") or meta.get("max_power_kw") or 0
+        charger_power_kw = float(power or 0)
+        address = charger_data.get("address") or meta.get("address") or charger_data.get("location") or ""
+        city = meta.get("city") or ""
+        if city and city not in address:
+            address = f"{address}, {city}" if address else city
+        lat = charger_data.get("lat") or charger_data.get("latitude") or meta.get("latitude")
+        lng = charger_data.get("lng") or charger_data.get("longitude") or meta.get("longitude")
         if not display_name or display_name == cp_id.capitalize():
             display_name = charger_data.get("name") or charger_data.get("site_name") or display_name
 
@@ -111,6 +130,9 @@ async def charge_screen(request: Request, cp_id: str, connector: str):
         "preauth_amount": preauth_amount,
         "charger_error": charger_error,
         "tariff_kwh_raw": tariff_kwh_raw,
+        # Same three names are not used. The fee is on every charger except the two pilots.
+        "connection_fee_pence": 0 if cp_id in {"BR75RN-1", "BR75RN-2"} else 30,
+        "session_cap_pence": 18000,
         "charger_power_kw": charger_power_kw,
         "address": address,
         "lat": lat,

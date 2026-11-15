@@ -31,7 +31,7 @@
         </div>
         <div style="display:flex;justify-content:space-between;padding:10px 0;">
           <span class="text-muted">{{ t.phone | default('Phone') }}</span>
-          <span>{{ profile.phone or '—' }}</span>
+          <span>{{ profile.phone | uk_phone or '—' }}</span>
         </div>
       </div>
 

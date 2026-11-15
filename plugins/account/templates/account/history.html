@@ -20,7 +20,7 @@ var I18N={{ t | tojson if t is defined else '{}' }};
     var data=await r.json();
     if(!r.ok){document.getElementById('history-loading').textContent=I18N.error||'Fout';return;}
     var sessions=data.sessions||[];
-    var totals=data.totals||{};
+    var totals=data.totals||{total_kwh:data.total_kwh,total_cost:data.total_cost,count:data.total};
     var el=document.getElementById('history-content');
     var html='';
     if(totals.total_kwh!==undefined){
@@ -35,13 +35,13 @@ var I18N={{ t | tojson if t is defined else '{}' }};
     }else{
       sessions.forEach(function(s){
         var date=s.started_at?new Date(s.started_at).toLocaleDateString('nl-NL',{day:'numeric',month:'short',year:'numeric'}):'—';
-        var kwh=(s.energy_kwh||0).toFixed(1);
-        var rate=s.rate_kwh==null?0.50:s.rate_kwh;
-        var ex=Math.round((s.energy_kwh||0)*rate*100)/100;
-        var cost='£'+(Math.round(ex*1.20*100)/100).toFixed(2);
+        var energy=s.kwh_delivered||s.energy_kwh||0;
+        var kwh=Number(energy).toFixed(1);
+        var cost=s.cost!=null?'£'+Number(s.cost).toFixed(2):'£0.00';
         html+='<div style="background:var(--card-bg);border-radius:10px;padding:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">';
         html+='<div><div style="font-weight:600;">'+s.cp_id+'</div><div style="font-size:12px;color:var(--text3);">'+date+'</div></div>';
-        html+='<div style="text-align:right;"><div style="font-weight:600;">'+kwh+' kWh</div><div style="font-size:12px;color:var(--text3);">'+cost+'</div></div>';
+        var invoice=s.invoice?'<div style="font-size:12px;margin-top:4px;"><a href="/api/account/sessions/'+s.id+'/invoice">Download invoice</a></div>':'';
+        html+='<div style="text-align:right;"><div style="font-weight:600;">'+kwh+' kWh</div><div style="font-size:12px;color:var(--text3);">'+cost+'</div>'+invoice+'</div>';
         html+='</div>';
       });
     }

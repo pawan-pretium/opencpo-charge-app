@@ -29,6 +29,9 @@
         >♡</button>
         {% endif %}
       </div>
+      {% if address %}
+        <div style="font-size:14px;color:var(--text2);margin:4px 0 8px;">{{ address }}</div>
+      {% endif %}
       <h2 class="charger-title">⚡ {{ t.connector | default('Connector') }} {{ connector }}</h2>
       {% if evse_id %}
         <div style="font-size:12px;color:var(--text3);margin-bottom:12px;font-family:monospace;">{{ evse_id }}</div>
@@ -88,6 +91,8 @@
       <div id="cost-estimator"
            data-tariff="{{ tariff_kwh_raw }}"
            data-power="{{ charger_power_kw }}"
+           data-fee-pence="{{ connection_fee_pence }}"
+           data-cap-pence="{{ session_cap_pence }}"
            style="margin:20px 0; padding:16px; background:var(--card2, rgba(255,255,255,0.05)); border:1px solid var(--accent, #00B0E4); border-radius:12px;">
         <div style="font-size:14px; font-weight:600; color:var(--accent,#00B0E4); margin-bottom:12px;">🔢 {{ t.estimator_title | default('Cost estimate') }}</div>
         <label for="kwh-slider" style="font-size:13px; color:var(--text2,#c0d0e0); display:block; margin-bottom:8px;">
@@ -112,6 +117,8 @@
         var slider = document.getElementById('kwh-slider');
         var tariff = parseFloat(el.dataset.tariff) || 0;
         var power = parseFloat(el.dataset.power) || 0;
+        var feePence = parseInt(el.dataset.feePence, 10) || 0;
+        var capPence = parseInt(el.dataset.capPence, 10) || 18000;
         var I18N = window.I18N || {};
 
         function pounds(n) {
@@ -120,11 +127,13 @@
 
         function update() {
           var kwh = parseInt(slider.value, 10);
-          if (tariff > 0) {
-            var exVat = Math.round(kwh * tariff * 100) / 100;
-            var cost = Math.round(exVat * 1.20 * 100) / 100;
+          // Same total as the invoice: fee once there is energy, then 20% once.
+          var energyPence = Math.round(kwh * tariff * 100);
+          var totalPence = Math.round((energyPence + (kwh > 0 ? feePence : 0)) * 1.20);
+          if (totalPence > capPence) totalPence = capPence;
+          if (tariff > 0 || feePence > 0) {
             document.getElementById('est-cost').textContent =
-              '~£' + pounds(cost) + ' for ' + kwh + ' kWh including VAT';
+              '~£' + pounds(totalPence / 100) + ' for ' + kwh + ' kWh including VAT';
           } else {
             document.getElementById('est-cost').textContent = kwh + ' kWh ' + (I18N.estimator_kwh_selected || 'selected');
           }

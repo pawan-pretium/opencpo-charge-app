@@ -94,9 +94,19 @@ async function loadReceipt() {
     }
 
     var rate = session.rate_kwh || 0;
-    var subtotal = Math.round(kwh * rate * 100) / 100;
-    var total = Math.round(subtotal * 1.20 * 100) / 100;
+    // Same rule as the invoice: the connection fee is added once, when there is energy.
+    var energyPence = Math.round(kwh * rate * 100);
+    var feePence = kwh > 0 ? (session.connection_fee_pence || 0) : 0;
+    // 20% once on the ex-VAT sum, to the penny, matching the invoice.
+    var totalPence = Math.round((energyPence + feePence) * 1.20);
+    var capPence = session.session_cap_pence || 18000;
+    if (totalPence > capPence) totalPence = capPence;
+    var subtotal = (energyPence + feePence) / 100;
+    var total = totalPence / 100;
     var vat = Math.round((total - subtotal) * 100) / 100;
+    var feeRow = feePence > 0
+      ? '<div class="receipt-row"><span class="label">' + (I18N.receipt_connection_fee || 'Connection fee') + '</span><span class="value">' + formatEuro(feePence / 100) + '</span></div>'
+      : '';
 
     var startDate = session.started_at
       ? new Date(session.started_at).toLocaleString('en-GB', {day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'})
@@ -113,6 +123,14 @@ async function loadReceipt() {
       : '—';
 
     var driverPhone = localStorage.getItem('driver_phone');
+    if (driverPhone) {
+      var digits = String(driverPhone).replace(/\D/g, '');
+      if (digits.charAt(0) === '0' && digits.length === 11) digits = '44' + digits.slice(1);
+      if (digits.indexOf('44') === 0 && digits.length === 12) {
+        var rest = digits.slice(2);
+        driverPhone = '+44 ' + rest.slice(0, 4) + ' ' + rest.slice(4, 7) + ' ' + rest.slice(7);
+      }
+    }
     var receiptNote = '';
     if (driverPhone) {
       receiptNote = '<p class="text-muted mt-8">' +
@@ -137,6 +155,7 @@ async function loadReceipt() {
         '<div class="receipt-row"><span class="label">' + (I18N.receipt_energy || 'Energy delivered') + '</span><span class="value">' + kwh.toFixed(3) + ' kWh</span></div>' +
         '<div class="receipt-row"><span class="label">' + (I18N.receipt_rate || 'Rate (excl. VAT)') + '</span><span class="value">' + formatEuro(rate) + '/kWh</span></div>' +
         '<div class="divider"></div>' +
+        feeRow +
         '<div class="receipt-row"><span class="label">' + (I18N.receipt_subtotal || 'Subtotal') + '</span><span class="value">' + formatEuro(subtotal) + '</span></div>' +
         '<div class="receipt-row"><span class="label">' + (I18N.receipt_vat || 'VAT (20%)') + '</span><span class="value">' + formatEuro(vat) + '</span></div>' +
         '<div class="receipt-row total"><span>' + (I18N.receipt_total || 'Total paid') + '</span><span>' + formatEuro(total) + '</span></div>' +

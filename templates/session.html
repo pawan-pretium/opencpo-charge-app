@@ -235,8 +235,13 @@ async function pollSession() {
     }
     var kwh = (_kwhBaseline !== null) ? Math.max(0, rawKwh - _kwhBaseline) : 0;
     var rate = session.rate_kwh || 0;
-    var exVat = Math.round(kwh * rate * 100) / 100;
-    var cost = Math.round(exVat * 1.20 * 100) / 100;
+    var exVatPence = Math.round(kwh * rate * 100);
+    // Same rule as the invoice: the connection fee is added once, when there is energy.
+    var feePence = kwh > 0 ? (session.connection_fee_pence || 0) : 0;
+    var costPence = Math.round((exVatPence + feePence) * 1.20);
+    var capPence = session.session_cap_pence || 18000;
+    if (costPence > capPence) costPence = capPence;
+    var cost = costPence / 100;
     _lastKwh = kwh;
     _lastCost = cost;
 

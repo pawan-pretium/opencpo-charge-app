@@ -10,7 +10,7 @@ from typing import Optional
 import httpx
 import jwt
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 
 import config
 
@@ -239,6 +239,27 @@ async def api_sessions(request: Request):
     if status != 200:
         return JSONResponse({"error": data.get("detail", "Error")}, status_code=status)
     return JSONResponse(data)
+
+
+@router.get("/api/account/sessions/{session_id}/invoice")
+async def api_session_invoice(session_id: str, request: Request):
+    """Download the CPO invoice PDF for one of this driver's sessions."""
+    token = request.cookies.get(COOKIE_NAME)
+    if not token:
+        return JSONResponse({"error": "Not logged in"}, status_code=401)
+    headers = {"Authorization": f"Bearer {token}"}
+    async with httpx.AsyncClient(base_url=CORE_API, timeout=30) as client:
+        response = await client.get(
+            f"/api/v1/public/account/sessions/{session_id}/invoice",
+            headers=headers,
+        )
+    if response.status_code != 200:
+        return JSONResponse({"error": "Invoice not found"}, status_code=response.status_code)
+    return Response(content=response.content, media_type="application/pdf", headers={
+        "Content-Disposition": response.headers.get(
+            "content-disposition", f'attachment; filename="invoice.pdf"'
+        ),
+    })
 
 
 @router.put("/api/account/profile")
