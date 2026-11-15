@@ -44,7 +44,7 @@ self.addEventListener('push', e => {
   e.waitUntil(self.registration.showNotification(
     data.title || '⚡ Charging update',
     {
-      body: data.body || 'Laden voltooid',
+      body: data.body || 'Charging complete',
       icon: '/static/icon-192.png',
       badge: '/static/icon-192.png',
       vibrate: [200, 100, 200],

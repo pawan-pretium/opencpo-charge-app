@@ -99,6 +99,7 @@
     "email_optional": "(optioneel)",
     "enter_email": "Voer uw e-mailadres in",
     "email_receipt_desc": "We sturen uw bonnetje hier naartoe.",
+    "email_code_desc": "We sturen een verificatiecode naar dit adres.",
     "creating_session": "Sessie aanmaken…",
     "rate_updated": "Elke 15 min bijgewerkt",
     "err_invalid_phone": "Voer een geldig telefoonnummer in.",
@@ -213,7 +214,7 @@
     "verify": "Confirm",
     "enter_code": "Enter the code",
     "pay_and_charge": "Pay now",
-    "preauth_note": "€25 will be reserved. You only pay for what you charge.",
+    "preauth_note": "£25 will be reserved. You only pay for what you charge.",
     "session_starting": "Starting charger…",
     "session_starting_subtitle": "Connect the cable if not done yet",
     "session_active": "Session active",
@@ -293,6 +294,7 @@
     "email_optional": "(optional)",
     "enter_email": "Enter your email address",
     "email_receipt_desc": "We will send your receipt here.",
+    "email_code_desc": "We will send a verification code to this address.",
     "creating_session": "Creating session…",
     "rate_updated": "Updated every 15 min",
     "err_invalid_phone": "Please enter a valid phone number.",
@@ -387,4 +389,4 @@
     "err_stop_friendly": "Could not stop the charger. Please try again.",
     "charge_ready": "✓ Ready →"
   }
-}}
+}

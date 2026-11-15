@@ -30,11 +30,10 @@ except Exception:
 
 
 def _detect_lang(request) -> str:
-    """Detect language: cookie → query param → default nl.
+    """Detect language: cookie, then query param, then English.
 
-    Default is always Dutch. Language only changes when the user explicitly
-    selects English via the switcher (?lang=en) or a persisted cookie.
-    Accept-Language header is intentionally ignored — Dutch-first policy.
+    With no cookie and no ?lang=, the driver sees British English.
+    A stored language cookie may still select Dutch.
     """
     # 1. Cookie (persisted explicit choice)
     cookie_lang = request.cookies.get("lang")

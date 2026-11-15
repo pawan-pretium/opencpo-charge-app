@@ -89,17 +89,17 @@ async function loadReceipt() {
     if (co2Badge && kwh > 0) {
       var co2Kg = kwh * CO2_KG_PER_KWH;
       document.getElementById('co2-receipt-val').textContent =
-        co2Kg.toFixed(2).replace('.', ',') + ' kg';
+        co2Kg.toFixed(2) + ' kg';
       co2Badge.style.display = 'flex';
     }
 
     var rate = session.rate_kwh || 0;
-    var total = session.total_eur || (kwh * rate * 1.20);
-    var vat = session.vat_eur || (kwh * rate * 0.20);
-    var subtotal = session.amount_eur || (kwh * rate);
+    var subtotal = Math.round(kwh * rate * 100) / 100;
+    var total = Math.round(subtotal * 1.20 * 100) / 100;
+    var vat = Math.round((total - subtotal) * 100) / 100;
 
     var startDate = session.started_at
-      ? new Date(session.started_at).toLocaleString('nl-NL', {dateStyle:'medium', timeStyle:'short'})
+      ? new Date(session.started_at).toLocaleString('en-GB', {day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'})
       : '—';
 
     var durationStr = '—';
@@ -138,7 +138,7 @@ async function loadReceipt() {
         '<div class="receipt-row"><span class="label">' + (I18N.receipt_rate || 'Rate (excl. VAT)') + '</span><span class="value">' + formatEuro(rate) + '/kWh</span></div>' +
         '<div class="divider"></div>' +
         '<div class="receipt-row"><span class="label">' + (I18N.receipt_subtotal || 'Subtotal') + '</span><span class="value">' + formatEuro(subtotal) + '</span></div>' +
-        '<div class="receipt-row"><span class="label">' + (I18N.receipt_vat || 'VAT (21%)') + '</span><span class="value">' + formatEuro(vat) + '</span></div>' +
+        '<div class="receipt-row"><span class="label">' + (I18N.receipt_vat || 'VAT (20%)') + '</span><span class="value">' + formatEuro(vat) + '</span></div>' +
         '<div class="receipt-row total"><span>' + (I18N.receipt_total || 'Total paid') + '</span><span>' + formatEuro(total) + '</span></div>' +
         '<div class="divider"></div>' +
         '<div class="receipt-row"><span class="label">' + (I18N.receipt_method || 'Payment method') + '</span><span class="value">' + (session.payment_method || 'Card') + '</span></div>' +
