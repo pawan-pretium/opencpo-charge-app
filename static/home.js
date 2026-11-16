@@ -330,7 +330,7 @@ function openSheet(cp) {
           : (I18N.charge_action || 'Charge →');
         var btnBg = c.status.toLowerCase() === 'preparing' ? '#22c55e' : 'var(--accent)';
         startBtn = '<a href="/charge/' + encodeURIComponent(cpId) + '/' + encodeURIComponent(cid) + '" ' +
-          'style="padding:4px 10px;background:' + btnBg + ';color:#0C2340;' +
+          'style="padding:4px 10px;background:' + btnBg + ';color:#ffffff;' +
           'border-radius:6px;font-size:12px;font-weight:700;text-decoration:none;margin-left:8px;">' +
           btnLabel + '</a>';
       }

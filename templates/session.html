@@ -49,6 +49,7 @@
       <div class="power-display">
         <div class="power-value" id="power-val">—</div>
         <div class="power-unit">kW</div>
+        <div id="power-note" style="display:none;font-size:13px;color:var(--text3);margin-top:10px;">{{ t.power_not_reported | default('Live power is not reported by this charger') }}</div>
       </div>
 
       <!-- SoC battery bar (hidden until available) -->
@@ -70,17 +71,22 @@
           <span class="stat-value mono" id="duration-val">—</span>
         </div>
         <div class="stat-row">
-          <span class="stat-label">💰 {{ t.cost | default('Cost') }}</span>
+          <span class="stat-label"><span style="font-weight:700;">£</span> {{ t.cost | default('Cost') }}</span>
           <div style="text-align:right;">
             <span class="stat-value mono" id="cost-val">—</span>
             <div style="font-size:11px; color:var(--text3); margin-top:2px;">{{ t.incl_btw | default('incl. VAT') }}</div>
           </div>
         </div>
         <div class="stat-row">
-          <span class="stat-label">📊 {{ t.power | default('Power') }}</span>
+          <span class="stat-label">📊 {{ t.rate | default('Rate') }}</span>
           <span class="stat-value mono" id="rate-val">—</span>
         </div>
       </div>
+
+      <!-- Stop sits under the stats, above the bottom menu, so it can be tapped -->
+      <button class="btn btn-danger" id="stop-btn" style="display:none;margin-top:4px;margin-bottom:20px;" onclick="confirmStop()">
+        ■ {{ t.stop_charging | default('Stop charging') }}
+      </button>
 
       {# CO₂ savings badge — flag-gated #}
       {% if flags.get('co2_savings') %}
@@ -105,9 +111,6 @@
       </button>
     </div>
 
-    <button class="btn btn-danger" id="stop-btn" style="display:none;" onclick="confirmStop()">
-      ■ {{ t.stop_charging | default('Stop charging') }}
-    </button>
   </div>
 </div>
 
@@ -245,19 +248,23 @@ async function pollSession() {
     _lastKwh = kwh;
     _lastCost = cost;
 
+    // Zero means the charger has sent no power reading, so show a dash and say why.
     var powerKw = session.current_kw;
     var powerEl = document.getElementById('power-val');
-    if (powerKw !== null && powerKw !== undefined) {
+    var powerNote = document.getElementById('power-note');
+    if (powerKw) {
       powerEl.textContent = powerKw.toFixed(1);
-      powerEl.classList.toggle('charging', powerKw > 0);
+      powerEl.classList.add('charging');
+      powerNote.style.display = 'none';
     } else {
       powerEl.textContent = '—';
       powerEl.classList.remove('charging');
+      powerNote.style.display = '';
     }
 
     document.getElementById('kwh-val').textContent = kwh.toFixed(3) + ' kWh';
     document.getElementById('cost-val').textContent = formatEuro(cost);
-    if (rate) document.getElementById('rate-val').textContent = formatEuro(rate) + '/kWh ex-VAT';
+    document.getElementById('rate-val').textContent = formatEuro(rate) + '/kWh ex-VAT';
 
     var co2El = document.getElementById('co2-val');
     if (co2El) {

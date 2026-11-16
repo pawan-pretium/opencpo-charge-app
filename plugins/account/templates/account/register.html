@@ -18,7 +18,7 @@
     </div>
     <div class="form-group" style="margin-top:16px;">
       <label class="form-label">{{ t.email | default('Email') }}</label>
-      <input class="form-input" id="reg-email" type="email" inputmode="email" placeholder="{{ t.email_placeholder | default('naam@voorbeeld.nl') }}" autocomplete="email" style="font-size:16px;padding:14px 16px;" />
+      <input class="form-input" id="reg-email" type="email" inputmode="email" placeholder="{{ t.email_placeholder | default('name@example.com') }}" autocomplete="email" style="font-size:16px;padding:14px 16px;" />
     </div>
     <div class="form-group" style="margin-top:16px;">
       <label class="form-label">{{ t.phone | default('Phone') }} <span class="text-muted" style="font-weight:400;">({{ t.optional | default('optioneel') }})</span></label>
