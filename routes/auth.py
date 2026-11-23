@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi import HTTPException
 
 from core.api import api_post
+from core.driver_identity import clear_proof, hint, issue_proof, verified_identity
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -28,12 +29,15 @@ async def auth_screen(request: Request, cp_id: str, connector: str):
         }, status_code=400)
     templates = request.app.state.templates
     flags = getattr(request.state, "flags", {})
+    identity = await verified_identity(request)
     return templates.TemplateResponse(request, "auth.html", {
         "cp_id": cp_id,
         "connector": connector,
         "flags": flags,
         "t": getattr(request.state, "t", {}),
         "lang": getattr(request.state, "lang", "nl"),
+        "already_verified": identity is not None,
+        "verified_hint": hint(identity) if identity else "",
     })
 
 
@@ -55,7 +59,10 @@ async def verify_otp(request: Request):
             "phone": body.get("phone"),
             "code": body.get("code"),
         })
-        return JSONResponse(result)
+        resp = JSONResponse(result)
+        if result.get("token") and not result.get("error"):
+            issue_proof(resp, phone=result.get("phone") or body.get("phone"))
+        return resp
     except HTTPException as e:
         return JSONResponse({"error": e.detail}, status_code=e.status_code)
 
@@ -80,6 +87,17 @@ async def verify_email_otp(request: Request):
             "email": body.get("email"),
             "code": body.get("code"),
         })
-        return JSONResponse(result)
+        resp = JSONResponse(result)
+        if result.get("token") and not result.get("error"):
+            issue_proof(resp, email=result.get("email") or body.get("email"))
+        return resp
     except HTTPException as e:
         return JSONResponse({"error": e.detail}, status_code=e.status_code)
+
+
+@router.post("/api/auth/forget")
+async def forget_verification():
+    """Forget the remembered phone or email on this device."""
+    resp = JSONResponse({"ok": True})
+    clear_proof(resp)
+    return resp

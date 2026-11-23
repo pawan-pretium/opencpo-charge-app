@@ -5,6 +5,7 @@ from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 
 from core.api import api_get, api_post
+from core.driver_identity import verified_identity
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,18 @@ async def create_session(request: Request):
     # Map phone → driver_phone if needed (auth form sends "phone")
     if "phone" in body and "driver_phone" not in body:
         body["driver_phone"] = body.pop("phone")
+
+    # Who the session belongs to comes from a verified proof or a signed-in
+    # account, never from the browser. No proof: no session, no core call.
+    identity = await verified_identity(request)
+    if identity is None:
+        return JSONResponse(
+            {"error": "Please verify your phone or email again.", "code": "verification_required"},
+            status_code=401,
+        )
+    body["driver_phone"] = identity.get("phone")
+    if identity.get("email") and not body.get("driver_email"):
+        body["driver_email"] = identity["email"]
 
     cp_id = body.get("cp_id")
     connector_id = body.get("connector_id")

@@ -9,6 +9,13 @@
 
   <div class="page-content">
 
+    {% if already_verified %}
+    <div id="verified-banner" style="margin-bottom:20px;padding:12px 14px;border:1px solid var(--border,#1e3a5f);border-radius:10px;">
+      <div>{{ t.verified_as | default('Verified as') }} <strong>{{ verified_hint }}</strong></div>
+      <div style="margin-top:6px;font-size:14px;"><a href="#" onclick="forgetVerification(); return false;" style="color:var(--text2,#94a3b8);">{{ t.forget_verification | default('Use a different phone or email') }}</a></div>
+    </div>
+    {% endif %}
+
     {# ── Phone step ── #}
     <div id="phone-step">
       <div style="margin-bottom:24px;">
@@ -385,6 +392,7 @@ async function submitPhoneWithEmail(skip) {
         driver_email: email
       })
     });
+    if (r.status === 401) { window.location.reload(); return; }
     var data = await r.json();
     if (!r.ok || data.error) {
       errEl.innerHTML = '<div class="error-card">' + (data.error || data.detail || (I18N.err_session || 'Error creating session')) + '</div>';
@@ -464,6 +472,7 @@ async function goToPayment(phone, email, errEl, buttons) {
         driver_email: email
       })
     });
+    if (r.status === 401) { window.location.reload(); return; }
     var data = await r.json();
     if (!r.ok || data.error) {
       errEl.innerHTML = '<div class="error-card">' + (data.error || data.detail || (I18N.err_session || 'Error creating session')) + '</div>';
@@ -481,6 +490,22 @@ async function goToPayment(phone, email, errEl, buttons) {
     _submitPending = false;
     buttons.forEach(function(b) { if (b) b.disabled = false; });
   }
+}
+
+// Remembered device or signed-in account: skip the code and go to the receipt step.
+var ALREADY_VERIFIED = {{ 'true' if already_verified else 'false' }};
+if (ALREADY_VERIFIED) {
+  document.getElementById('phone-step').style.display = 'none';
+  document.getElementById('email-step').style.display = 'none';
+  document.getElementById('otp-step').style.display = 'none';
+  document.getElementById('email-receipt-step').style.display = '';
+}
+
+async function forgetVerification() {
+  try { await fetch('/api/auth/forget', {method: 'POST'}); } catch (e) { /* reload anyway */ }
+  localStorage.removeItem('driver_phone');
+  localStorage.removeItem('driver_email');
+  window.location.reload();
 }
 </script>
 {% endblock %}
